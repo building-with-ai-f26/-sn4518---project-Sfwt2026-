@@ -1,9 +1,9 @@
-# [Project Name]
+# FlexWeek
 
-> **One-line pitch:** [Who is this for, and what job does it do for them?]
+> **One-line pitch:** For people who lift on a weekly plan and play other sports: enter this week's real constraints (fewer days, sports, equipment) and FlexWeek rewrites the week, keeping the balance and explaining every change.
 
-- **Builder:** [Your Name] (`@github-handle`)
-- **Pod:** [Pod Name / Number]
+- **Builder:** Sebastian Nieto (`sebastian-nieto-1309`)
+- **Pod:** TBD
 - **Product Page & Living PRD:** https://building-with-ai-f26.github.io/-sn4518---project-Sfwt2026-/
 - **App:** runs locally through Week 4; add a cloud URL in Build 5.
 
@@ -35,11 +35,11 @@ Create your PostHog account in Week 1. Install it on the Product Page and local 
 
 ## Local setup
 
-Clone **your own repository** and ask your coding agent to document the exact install and run commands here and in `AGENTS.md`.
+No install needed. Open `prototype/index.html` in a browser; run tests with `node --test tests/` (Node 18+).
 
 ```bash
-git clone https://github.com/building-with-ai-f26/<your-repo-name>.git
-cd <your-repo-name>
+git clone https://github.com/building-with-ai-f26/-sn4518---project-Sfwt2026-.git
+cd ./-sn4518---project-Sfwt2026-
 ```
 
 If your app needs API keys, use a local environment file such as `.env`. Keep private keys out of source code, browser code, screenshots, and commits. The template ignores `.env`; `.env.example` contains placeholders only.
