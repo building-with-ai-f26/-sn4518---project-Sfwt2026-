@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlexWeek · Prototype</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #5b6472;
+      --border: #e3e6ea;
+      --accent: #1d63dc;
+      --accent-soft: #eaf1fd;
+      --sport: #0f7a4a;
+      --sport-soft: #e6f5ec;
+      --warn: #9a5b00;
+      --warn-soft: #fff4e0;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1217;
+        --card: #171b22;
+        --text: #e8ebef;
+        --muted: #9aa3ae;
+        --border: #2a303a;
+        --accent: #6aa0ff;
+        --accent-soft: #1b2638;
+        --sport: #5fd39a;
+        --sport-soft: #15291f;
+        --warn: #ffbf5e;
+        --warn-soft: #2d2414;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+    h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.02em; }
+    .sub { margin: 0 0 24px; color: var(--muted); }
+    .layout { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 20px; align-items: start; }
+    @media (max-width: 820px) { .layout { grid-template-columns: 1fr; } }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+    .card + .card { margin-top: 16px; }
+    h2 { font-size: 15px; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .row select { flex: 1; }
+    select, input[type="number"] {
+      font: inherit; color: var(--text); background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; min-width: 0;
+    }
+    input[type="number"] { width: 80px; }
+    button {
+      font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--card); color: var(--text); padding: 7px 12px;
+    }
+    button:hover { border-color: var(--accent); }
+    .icon-btn { padding: 6px 10px; color: var(--muted); }
+    .primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; padding: 10px 16px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .radio { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 6px; }
+    .radio input { margin-top: 4px; }
+    .hint { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+    .empty { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+
+    .week { display: grid; gap: 8px; }
+    .day { display: grid; grid-template-columns: 52px 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+    .day:first-child { border-top: none; }
+    .day-name { font-weight: 700; padding-top: 2px; }
+    .rest { color: var(--muted); }
+    .chip { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 9px; border-radius: 999px; margin: 0 6px 4px 0; }
+    .chip.session { background: var(--accent-soft); color: var(--accent); }
+    .chip.sport { background: var(--sport-soft); color: var(--sport); }
+    .ex { margin: 2px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
+    .ex li { display: inline; }
+    .ex li + li::before { content: " · "; }
+    .changes { margin: 0; padding: 0; list-style: none; }
+    .changes li { padding: 8px 10px; border-radius: 8px; margin-bottom: 6px; background: var(--bg); font-size: 14px; }
+    .changes li.warning { background: var(--warn-soft); color: var(--warn); }
+    .tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-right: 6px; }
+    .changes li.warning .tag { color: var(--warn); }
+    .error { color: #c0392b; font-weight: 600; }
+    .footer { margin-top: 24px; font-size: 13px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>FlexWeek</h1>
+    <p class="sub">Your training plan assumes a perfect week. Tell FlexWeek this week's constraints and get an adjusted week that keeps the balance, with a reason for every change.</p>
+
+    <div class="layout">
+      <!-- INPUTS -->
+      <div>
+        <div class="card">
+          <h2>1 · Base weekly plan</h2>
+          <div id="plan"></div>
+          <button id="add-session" type="button">+ Add session</button>
+        </div>
+
+        <div class="card">
+          <h2>2 · This week</h2>
+          <label class="row">Days I can train: <input id="days" type="number" min="0" max="7" value="3" /></label>
+          <h2 style="margin-top:14px">Other activities</h2>
+          <div id="acts"></div>
+          <button id="add-act" type="button">+ Add activity</button>
+        </div>
+
+        <div class="card">
+          <h2>3 · Equipment</h2>
+          <div id="equip"></div>
+        </div>
+
+        <div class="actions">
+          <button id="run" class="primary" type="button">Adjust my week</button>
+          <button id="example" type="button">Load example</button>
+        </div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div>
+        <div class="card">
+          <h2>Adjusted week</h2>
+          <div id="week"><p class="empty">Fill in your plan and press <strong>Adjust my week</strong>, or try <strong>Load example</strong>.</p></div>
+        </div>
+        <div class="card">
+          <h2>What changed &amp; why</h2>
+          <div id="changes"><p class="empty">Changes will appear here.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="footer">Prototype · fixed rules only (no AI, no network). Everything runs in this page. Not medical or injury advice.</p>
+  </div>
+
+  <script src="coach.js"></script>
+  <script>
+    const { adjustWeek, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT } = window.FlexWeek;
+
+    const state = {
+      plan: [{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }],
+      days: 3,
+      acts: [],
+      equipment: 'full',
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const options = (obj, selected) =>
+      Object.entries(obj).map(([k, v]) => `<option value="${k}"${k === selected ? ' selected' : ''}>${v.name || v}</option>`).join('');
+    const dayOptions = (selected) =>
+      DAYS.map((d, i) => `<option value="${i}"${i === Number(selected) ? ' selected' : ''}>${d}</option>`).join('');
+
+    function renderInputs() {
+      $('plan').innerHTML = state.plan.length
+        ? state.plan.map((s, i) => `
+            <div class="row">
+              <select data-list="plan" data-i="${i}" data-k="type" aria-label="Session type">${options(SESSION_TYPES, s.type)}</select>
+              <select data-list="plan" data-i="${i}" data-k="day" aria-label="Usual day">${dayOptions(s.day)}</select>
+              <button class="icon-btn" data-remove="plan" data-i="${i}" type="button" aria-label="Remove session">✕</button>
+            </div>`).join('')
+        : '<p class="empty">No sessions yet.</p>';
+
+      $('acts').innerHTML = state.acts.length
+        ? state.acts.map((a, i) => `
+            <div class="row">
+              <select data-list="acts" data-i="${i}" data-k="type" aria-label="Activity">${options(ACTIVITIES, a.type)}</select>
+              <select data-list="acts" data-i="${i}" data-k="day" aria-label="Day">${dayOptions(a.day)}</select>
+              <button class="icon-btn" data-remove="acts" data-i="${i}" type="button" aria-label="Remove activity">✕</button>
+            </div>`).join('')
+        : '<p class="empty">None this week.</p>';
+
+      $('equip').innerHTML = Object.entries(EQUIPMENT).map(([k, v]) => `
+        <label class="radio"><input type="radio" name="equip" value="${k}"${k === state.equipment ? ' checked' : ''} /> <span>${v}</span></label>`).join('');
+
+      $('days').value = state.days;
+    }
+
+    function renderResult(r) {
+      if (r.error) {
+        $('week').innerHTML = `<p class="error">${r.error}</p>`;
+        $('changes').innerHTML = '';
+        return;
+      }
+      $('week').innerHTML = '<div class="week">' + r.week.map((w) => {
+        const parts = [];
+        w.activities.forEach((a) => parts.push(`<span class="chip sport">${a}</span>`));
+        w.sessions.forEach((s) => {
+          parts.push(`<span class="chip session">${s.label}</span>`);
+          parts.push('<ul class="ex">' + s.exercises.map((e) => `<li>${e.name} ${e.sets}×</li>`).join('') + '</ul>');
+        });
+        if (!parts.length) parts.push('<span class="rest">Rest</span>');
+        return `<div class="day"><div class="day-name">${w.day}</div><div>${parts.join('')}</div></div>`;
+      }).join('') + '</div>';
+
+      const tags = { merge: 'Merge', drop: 'Drop', move: 'Move', volume: 'Volume', equipment: 'Equipment', warning: 'Heads-up' };
+      const items = r.changes.map((c) =>
+        `<li class="${c.kind}"><span class="tag">${tags[c.kind]}</span>${c.text.replace(/^Heads-up: /, '')}</li>`);
+      const notes = r.notes.map((n) => `<li><span class="tag">Note</span>${n}</li>`);
+      $('changes').innerHTML = '<ul class="changes">' + items.concat(notes).join('') + '</ul>';
+    }
+
+    function run() {
+      renderResult(adjustWeek({ basePlan: state.plan, daysAvailable: state.days, activities: state.acts, equipment: state.equipment }));
+    }
+
+    document.addEventListener('change', (e) => {
+      const t = e.target;
+      if (t.dataset.list) {
+        const v = t.dataset.k === 'day' ? Number(t.value) : t.value;
+        state[t.dataset.list][Number(t.dataset.i)][t.dataset.k] = v;
+      } else if (t.name === 'equip') {
+        state.equipment = t.value;
+      } else if (t.id === 'days') {
+        state.days = Number(t.value);
+      }
+    });
+    document.addEventListener('click', (e) => {
+      const t = e.target.closest('[data-remove]');
+      if (!t) return;
+      state[t.dataset.remove].splice(Number(t.dataset.i), 1);
+      renderInputs();
+    });
+    $('days').addEventListener('input', (e) => { state.days = Number(e.target.value); });
+    $('add-session').addEventListener('click', () => {
+      const used = state.plan.map((s) => s.day);
+      const free = DAYS.findIndex((_, i) => !used.includes(i));
+      state.plan.push({ type: 'full', day: free < 0 ? 0 : free });
+      renderInputs();
+    });
+    $('add-act').addEventListener('click', () => { state.acts.push({ type: 'soccer', day: 3 }); renderInputs(); });
+    $('run').addEventListener('click', run);
+    $('example').addEventListener('click', () => {
+      state.plan = [{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }];
+      state.days = 2;
+      state.acts = [{ type: 'soccer', day: 3 }];
+      state.equipment = 'home';
+      renderInputs();
+      run();
+    });
+
+    renderInputs();
+  </script>
+</body>
+</html>

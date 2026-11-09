@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>[Your Product Name] · Building with AI (Fall 2026)</title>
+  <title>FlexWeek · Building with AI (Fall 2026)</title>
 
   <!-- Week 1: create your PostHog account only.
        Build 2: paste your project's current PostHog web snippet here,
@@ -144,8 +144,8 @@
     <!-- HERO / PRODUCT PITCH -->
     <header>
       <span class="eyebrow">NYU Stern · Building with AI · Fall 2026</span>
-      <h1>[Your Product Name]</h1>
-      <p class="tagline">[One clear sentence: Who is this for, and what painful job does it do for them?]</p>
+      <h1>FlexWeek</h1>
+      <p class="tagline">A training coach for people who lift on a weekly plan and play other sports: tell it this week's real-life constraints and it rewrites the week, keeping the balance and explaining every change.</p>
       <div class="cta-row">
         <a class="btn" href="#live-demo" onclick="window.posthog && posthog.capture('clicked_try_product')">See the Product →</a>
         <a class="btn btn-secondary" href="#prd">Read the Living PRD</a>
@@ -157,12 +157,11 @@
     <section id="live-demo">
       <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
       <p>
-        <strong>Current Status:</strong> [Build 1: local prototype / Builds 2–4: local app / Build 5: cloud app]<br />
-        <strong>Demo:</strong> [Add a screenshot or GIF now; add the live cloud app URL in Build 5.]
+        <strong>Current Status:</strong> Build 1: local prototype (<code>prototype/index.html</code>, fixed rules, no AI calls)<br />
+        <strong>Demo:</strong> Local prototype with the example week: Upper / Lower / Full Body plan, only 2 training days, soccer Thursday, home equipment.
       </p>
-      <p class="meta">
-        Ask your coding agent to embed a screenshot or GIF of your local prototype for Build 1. Keep this evidence current, then add your cloud app link and two-minute video in Build 5.
-      </p>
+      <img src="prototype.png" alt="FlexWeek prototype: base plan and constraints on the left, the adjusted Mon–Sun week and a list of changes with one-line reasons on the right" style="width:100%;height:auto;border:1px solid var(--border);border-radius:8px;" />
+      <p class="meta">Live cloud app URL and two-minute video coming in Build 5.</p>
     </section>
 
     <!-- LIVING PRD (Updated every week!) -->
@@ -171,21 +170,24 @@
       <p class="meta">Updated every week as we test with real users and learn what works.</p>
 
       <h3>1. Target User & The Job to Be Done</h3>
-      <p><strong>Who is this for?</strong> [Name a specific, reachable person or role you have direct access to.]</p>
-      <p><strong>The painful "Before" workflow:</strong> [How do they do this today, and why is it slow, manual, or broken?]</p>
-      <p><strong>The "After" workflow with this product:</strong> [What does your tool do for them in one sitting?]</p>
+      <p class="meta">PRD v1 · November 9, 2026</p>
+      <p><strong>The problem:</strong> My training plan assumes a perfect week. Real weeks have fewer gym days, soccer practice, or a gym without the right equipment, and I re-plan in my head every time.</p>
+      <p><strong>Who is this for?</strong> Me and MBA friends who lift on a weekly plan and play other sports.</p>
+      <p><strong>The painful "Before" workflow:</strong> Skip sessions or improvise substitutions on the spot; the week's balance falls apart.</p>
+      <p><strong>The "After" workflow with this product:</strong> Tell it this week's constraints and get an adjusted week that keeps the balance (muscle groups, volume) and respects other activities and equipment.</p>
 
       <h3>2. Scope & Explicit Non-Goals</h3>
       <ul>
-        <li><strong>In Scope (Core Workflow):</strong> [The 1 main workflow this product does reliably]</li>
-        <li><strong>Out of Scope #1:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
-        <li><strong>Out of Scope #2:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
-        <li><strong>Out of Scope #3:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
+        <li><strong>In Scope (Core Workflow):</strong> Set base plan once → enter this week's constraints (days available, other activities, gym/equipment) → get the adjusted week with a reason for each change.</li>
+        <li><strong>Out of Scope #1:</strong> Nutrition.</li>
+        <li><strong>Out of Scope #2:</strong> Live Whoop sync (not in Build 1; recovery data comes later).</li>
+        <li><strong>Out of Scope #3:</strong> Injury or medical advice.</li>
       </ul>
+      <p><strong>How I'll know it works:</strong> Testers use it at least once a week and follow most of the adjusted plan.</p>
 
       <h3>3. How It Works Under the Hood & Riskiest Assumption (Week 2+)</h3>
-      <p><strong>Riskiest Assumption:</strong> [What is the #1 technical or user risk that could sink this product?]</p>
-      <p><strong>Simple Architecture:</strong> [User Input] → [Your App / Server] → [AI Model / Tool] → [Output]</p>
+      <p><strong>Riskiest Assumption:</strong> [To decide in Build 2]</p>
+      <p><strong>Simple Architecture (Build 1):</strong> [Base plan + this week's constraints] → [Single web page, runs locally] → [Fixed rules in <code>prototype/coach.js</code>: merge sessions to fit days, move sessions away from sports, trim volume, swap exercises for equipment; no AI model yet] → [Adjusted week + one-line reason per change]</p>
 
       <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
       <div class="grid-2">
@@ -223,10 +225,11 @@
       <div class="log-entry">
         <h3>Build 1 · Intent.md & Throwaway Prototype (Due Nov 9)</h3>
         <ul>
-          <li><strong>What shipped:</strong> [What you actually built; link your local prototype screenshot or GIF above.]</li>
-          <li><strong>Things learned with AI:</strong> [What you learned from AI practice and Terminus Episodes 1 and 2.]</li>
-          <li><strong>What broke / changed in PRD:</strong> [Fill in]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
+          <li><strong>What shipped:</strong> PRD v1 on this page, plus a throwaway local prototype (<code>prototype/index.html</code>). You enter a base plan, days available, other activities and equipment, and it outputs an adjusted Mon–Sun week with a one-line reason per change. It uses fixed rules: merge sessions to fit fewer days, keep leg work off sport days and the day before or after them, cut leg sets when a sport already loads the legs, and swap exercises for home or limited-machine setups. No AI calls or API keys; 11 deterministic tests in <code>tests/coach.test.js</code>. Screenshot above.</li>
+          <li><strong>What works:</strong> The example week (2 days, soccer Thursday, home) comes out right. Upper + Lower merge into one Full Body, the Friday session moves to Saturday so it isn't the day after soccer, leg sets drop to 2, and barbell lifts swap to dumbbell versions. Each change has a one-line reason.</li>
+          <li><strong>Things learned with AI:</strong> Asking the agent to explain its plan before building caught a problem early: my PRD hadn't actually pasted, so it asked instead of inventing one. Keeping the rules in a separate file with tests made it easy to check that the reasons match what the plan actually does. Fixed rules were enough to test the core idea without an AI model.</li>
+          <li><strong>What broke / changed in PRD:</strong> Wrote PRD v1. Renaming the class repo failed because it needs org admin rights. The rules are crude: each sport counts as loading either the legs or the upper body, whatever its intensity; the exercise lists are fixed; the plan isn't saved between visits; and it doesn't plan across the Sunday → Monday week boundary. Next: test it on real weeks with friends.</li>
+          <li><strong>Cost & time this week:</strong> $0.00 · ~3 hours (estimated from file timestamps: setup on Nov 8 through prototype on Nov 9)</li>
         </ul>
       </div>
 
