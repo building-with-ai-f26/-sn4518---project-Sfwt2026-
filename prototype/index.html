@@ -77,9 +77,16 @@
     .chip { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 9px; border-radius: 999px; margin: 0 6px 4px 0; }
     .chip.session { background: var(--accent-soft); color: var(--accent); }
     .chip.sport { background: var(--sport-soft); color: var(--sport); }
-    .ex { margin: 2px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
-    .ex li { display: inline; }
-    .ex li + li::before { content: " · "; }
+    .day > div { min-width: 0; }
+    .exercise-table-wrap { max-width: 100%; overflow-x: auto; margin: 2px 0 10px; }
+    .ex { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+    .ex th, .ex td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .ex thead th { color: var(--muted); font-size: 12px; font-weight: 600; }
+    .ex tbody th { width: 44px; font-weight: 400; }
+    .ex td:last-child { width: 45%; }
+    .ex select { width: 100%; min-width: 120px; max-width: 100%; }
+    .ex .meta { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+    .ex .sets { display: block; color: var(--muted); font-size: 12px; }
     .changes { margin: 0; padding: 0; list-style: none; }
     .changes li { padding: 8px 10px; border-radius: 8px; margin-bottom: 6px; background: var(--bg); font-size: 14px; }
     .changes li.warning { background: var(--warn-soft); color: var(--warn); }
@@ -222,30 +229,19 @@
           <button id="edit-week" type="button">Edit base week</button>
         </div>
 
-        <div class="card">
-          <h2>2 · This week</h2>
-          <label class="row">Days I can train: <input id="days" type="number" min="0" max="7" value="3" /></label>
-          <h2 style="margin-top:14px">Other activities</h2>
-          <div id="acts"></div>
-          <button id="add-act" type="button">+ Add activity</button>
-        </div>
-
-        <div class="card">
-          <h2>3 · Equipment</h2>
-          <div id="equip"></div>
-        </div>
-
-        <div class="actions">
-          <button id="run" class="primary" type="button">Adjust my week</button>
-          <button id="example" type="button">Load example</button>
-        </div>
+<p class="hint">Base-week edits apply next week. This week’s recorded workouts stay unchanged.</p>
       </div>
 
       <!-- OUTPUT -->
       <div>
         <div class="card">
-          <h2>Adjusted week</h2>
-          <div id="week"><p class="empty">Fill in your plan and press <strong>Adjust my week</strong>, or try <strong>Load example</strong>.</p></div>
+          <h2>Your week</h2>
+          <label for="workout-day">Current workout day</label>
+          <select id="workout-day"></select>
+          <p id="week-context" class="hint"></p>
+          <p class="hint">Past workouts are read-only. Select today or an upcoming day to switch its exercises. Past does not mean completed.</p>
+          <p id="workout-storage-error" class="error" role="alert" hidden></p>
+          <div id="week"><p class="empty">Your saved workouts will appear here.</p></div>
         </div>
         <div class="card">
           <h2>What changed &amp; why</h2>
@@ -260,16 +256,19 @@
 
   <script src="exercises.js"></script>
   <script src="coach.js"></script>
+  <script src="workoutweek.js"></script>
   <script>
     const { adjustWeek, exerciseAlternatives, swapExercise, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT } = window.FlexWeek;
     let currentResult = null;
     let resultEquipment = null;
+    const WW = window.FlexWeekWorkoutWeek;
+    let workoutStore = null;
+    let workoutProfile = null;
+    let workoutRecord = null;
+    let selectedDay = WW.calendar().day;
 
     const state = {
       plan: [{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }],
-      days: 3,
-      acts: [],
-      equipment: 'full',
     };
 
     const $ = (id) => document.getElementById(id);
@@ -285,19 +284,7 @@
             <div class="day"><div class="day-name">${DAYS[s.day]}</div><div><span class="chip session">${SESSION_TYPES[s.type].name}</span></div></div>`).join('') + '</div>'
         : '<p class="empty">No sessions yet.</p>';
 
-      $('acts').innerHTML = state.acts.length
-        ? state.acts.map((a, i) => `
-            <div class="row">
-              <select data-list="acts" data-i="${i}" data-k="type" aria-label="Activity">${options(ACTIVITIES, a.type)}</select>
-              <select data-list="acts" data-i="${i}" data-k="day" aria-label="Day">${dayOptions(a.day)}</select>
-              <button class="icon-btn" data-remove="acts" data-i="${i}" type="button" aria-label="Remove activity">✕</button>
-            </div>`).join('')
-        : '<p class="empty">None this week.</p>';
 
-      $('equip').innerHTML = Object.entries(EQUIPMENT).map(([k, v]) => `
-        <label class="radio"><input type="radio" name="equip" value="${k}"${k === state.equipment ? ' checked' : ''} /> <span>${v}</span></label>`).join('');
-
-      $('days').value = state.days;
     }
 
     function renderResult(r) {
@@ -308,21 +295,26 @@
       }
       $('week').innerHTML = '<div class="week">' + r.week.map((w, dayIndex) => {
         const parts = [];
+        const today = WW.calendar();
+        const editable = WW.canEdit(workoutRecord.week, selectedDay, dayIndex);
+        const status = dayIndex < today.day ? 'Past' : dayIndex === today.day ? 'Today' : 'Upcoming';
+        parts.push('<p class="hint">' + status + (dayIndex === selectedDay ? ' · Selected' : '') + '</p>');
+        let exerciseNumber = 0;
         w.activities.forEach((a) => parts.push(`<span class="chip sport">${a}</span>`));
         w.sessions.forEach((s, sessionIndex) => {
           parts.push(`<span class="chip session">${s.label}</span>`);
-          parts.push('<ul class="ex">' + s.exercises.map((e, exerciseIndex) => {
+          parts.push(`<div class="exercise-table-wrap"><table class="ex" aria-label="${w.day} ${s.label} exercises"><thead><tr><th scope="col">Exercise #</th><th scope="col">Exercise name</th><th scope="col">Switch to</th></tr></thead><tbody>` + s.exercises.map((e, exerciseIndex) => {
             const choices = exerciseAlternatives(e.id, resultEquipment);
-            const control = choices.length
+            const control = !editable ? '<small>Read-only</small>' : choices.length
               ? `<select data-swap-day="${dayIndex}" data-swap-session="${sessionIndex}" data-swap-exercise="${exerciseIndex}" aria-label="Swap ${e.name}">
                   <option value="">Swap exercise…</option>
                   ${choices.map((a) => `<option value="${a.id}">${a.name}</option>`).join('')}
                 </select>`
               : '<small>No alternatives available</small>';
-            return `<li>${e.name} ${e.sets}× ${control}${e.swapReason ? `<p class="meta">${e.swapReason}</p>` : ''}</li>`;
-          }).join('') + '</ul>');
+            return `<tr><th scope="row">${++exerciseNumber}</th><td>${e.name}<span class="sets">${e.sets} sets</span>${e.swapReason ? `<p class="meta">${e.swapReason}</p>` : ''}</td><td>${control}</td></tr>`;
+          }).join('') + '</tbody></table></div>');
         });
-        if (!parts.length) parts.push('<span class="rest">Rest</span>');
+        if (!w.sessions.length && !w.activities.length) parts.push('<span class="rest">Rest</span>');
         return `<div class="day"><div class="day-name">${w.day}</div><div>${parts.join('')}</div></div>`;
       }).join('') + '</div>';
 
@@ -333,62 +325,69 @@
       $('changes').innerHTML = '<ul class="changes">' + items.concat(notes).join('') + '</ul>';
     }
 
-    function run() {
-      resultEquipment = state.equipment;
-      currentResult = adjustWeek({ basePlan: state.plan, daysAvailable: state.days, activities: state.acts, equipment: resultEquipment });
+    function saveWorkout() {
+      try {
+        workoutStore.save(workoutProfile, workoutRecord);
+        $('workout-storage-error').hidden = true;
+      } catch (_) {
+        $('workout-storage-error').textContent = 'Your latest workout changes could not be saved. Keep this page open to retain them.';
+        $('workout-storage-error').hidden = false;
+      }
+    }
+
+    function openWorkout() {
+      const today = WW.calendar();
+      selectedDay = today.day;
+      workoutRecord = workoutStore.load(workoutProfile, today.week);
+      if (!workoutRecord) {
+        workoutRecord = { version: 1, week: today.week, equipment: 'full',
+          result: adjustWeek({ basePlan: state.plan, daysAvailable: state.plan.length, activities: [], equipment: 'full' }) };
+      }
+      currentResult = workoutRecord.result;
+      resultEquipment = workoutRecord.equipment;
+      saveWorkout();
+      $('workout-day').innerHTML = dayOptions(selectedDay);
+      $('week-context').textContent = 'Week of ' + today.week + ' · Saved on this device for this person.';
       renderResult(currentResult);
     }
+
+    $('workout-day').addEventListener('change', (event) => {
+      if (!workoutRecord) return;
+      if (workoutRecord.week !== WW.calendar().week) { openWorkout(); return; }
+      selectedDay = Number(event.target.value);
+      renderResult(currentResult);
+    });
 
     $('week').addEventListener('change', (event) => {
       const t = event.target;
       if (t.dataset.swapDay === undefined || !t.value || !currentResult) return;
-      const session = currentResult.week[Number(t.dataset.swapDay)].sessions[Number(t.dataset.swapSession)];
+      if (workoutRecord.week !== WW.calendar().week) { openWorkout(); return; }
+      const day = Number(t.dataset.swapDay);
+      if (!WW.canEdit(workoutRecord.week, selectedDay, day)) { renderResult(currentResult); return; }
+      const session = currentResult.week[day]?.sessions[Number(t.dataset.swapSession)];
+      if (!session) return;
       const index = Number(t.dataset.swapExercise);
       const replacement = swapExercise(session.exercises[index], t.value, resultEquipment);
       if (!replacement) return;
       session.exercises[index] = replacement;
       currentResult.notes = currentResult.notes.filter((n) => n !== 'Your base plan already fits this week. No changes needed.');
+      saveWorkout();
       renderResult(currentResult);
     });
 
-    document.addEventListener('change', (e) => {
-      const t = e.target;
-      if (t.dataset.list) {
-        const v = t.dataset.k === 'day' ? Number(t.value) : t.value;
-        state[t.dataset.list][Number(t.dataset.i)][t.dataset.k] = v;
-      } else if (t.name === 'equip') {
-        state.equipment = t.value;
-      } else if (t.id === 'days') {
-        state.days = Number(t.value);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && workoutStore && workoutProfile) {
+        if (workoutRecord.week !== WW.calendar().week) openWorkout();
+        else renderResult(currentResult);
       }
     });
-    document.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-remove]');
-      if (!t) return;
-      state[t.dataset.remove].splice(Number(t.dataset.i), 1);
-      renderInputs();
-    });
-    $('days').addEventListener('input', (e) => { state.days = Number(e.target.value); });
-    $('add-act').addEventListener('click', () => { state.acts.push({ type: 'soccer', day: 3 }); renderInputs(); });
-    $('run').addEventListener('click', run);
-    // Example week on top of the user's own base week: one day fewer, soccer Thursday, home equipment.
-    $('example').addEventListener('click', () => {
-      state.days = Math.max(1, state.plan.length - 1);
-      state.acts = [{ type: 'soccer', day: 3 }];
-      state.equipment = 'home';
-      renderInputs();
-      run();
-    });
 
-    // Called by the onboarding script when a person's saved base week is loaded or edited.
-    function setBasePlan(week) {
-      currentResult = null;
-      resultEquipment = null;
+    function setBasePlan(week, profileId, storage) {
       state.plan = week.map((s) => ({ type: s.type, day: s.day }));
-      state.days = state.plan.length;
-      $('week').innerHTML = '<p class="empty">Fill in this week and press <strong>Adjust my week</strong>, or try <strong>Load example</strong>.</p>';
-      $('changes').innerHTML = '<p class="empty">Changes will appear here.</p>';
+      workoutProfile = profileId;
+      workoutStore = WW.createWorkoutStore(storage);
       renderInputs();
+      openWorkout();
     }
 
     renderInputs();
@@ -554,7 +553,7 @@
         store.setCurrentId(id);
         const week = weekStore.loadWeek(id);
         if (!week) { openWeek(id); return; }
-        setBasePlan(week);
+        setBasePlan(week, id, storage);
         const p = store.loadProfile(id).profile;
         const value = bmi(p.heightCm, p.weightKg);
         $('who').innerHTML = `<strong>${esc(p.nickname)}</strong> · ${GOALS[p.goal]} · BMI ${value.toFixed(1)}`;

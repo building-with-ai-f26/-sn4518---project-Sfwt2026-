@@ -59,7 +59,7 @@ test('an exercise without eligible alternatives returns an empty list', () => {
   assert.deepEqual(exerciseAlternatives(exercise.id, 'home'), []);
 });
 
-test('planner wires selection to one exercise and regeneration clears the swap', () => {
+test('planner saves day-specific swaps, locks past days and retains history across base edits', () => {
   const fs = require('node:fs');
   const vm = require('node:vm');
   const html = fs.readFileSync(require.resolve('../prototype/index.html'), 'utf8');
@@ -73,23 +73,55 @@ test('planner wires selection to one exercise and regeneration clears the swap',
     },
     addEventListener() {},
   };
-  const context = vm.createContext({ document, window: { FlexWeek: require('../prototype/coach.js') } });
+  const WW = require('../prototype/workoutweek.js');
+  const clock = new Date(2026, 10, 11, 12); // Wednesday
+  const FixedDate = class extends Date { constructor(...args) { super(...(args.length ? args : [clock.getTime()])); } };
+  const data = new Map();
+  const storage = { getItem: (k) => data.get(k) || null, setItem: (k, v) => data.set(k, v) };
+  const context = vm.createContext({ document, Date: FixedDate, storage, window: {
+    FlexWeek: require('../prototype/coach.js'),
+    FlexWeekWorkoutWeek: { ...WW, calendar: () => WW.calendar(clock),
+      canEdit: (week, selected, day) => WW.canEdit(week, selected, day, clock) },
+  } });
   vm.runInContext(script, context);
-  vm.runInContext("state.equipment = 'home'; run();", context);
+  vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'upper', day: 2 }, { type: 'upper', day: 4 }], 'a', storage);", context);
   const before = JSON.parse(vm.runInContext('JSON.stringify(currentResult)', context));
-  assert.match(elements.get('week').innerHTML, /aria-label="Swap Dumbbell Bench Press"/);
-  // Editing the input alone must not change the equipment of the displayed result.
-  vm.runInContext("state.equipment = 'full';", context);
+  assert.match(elements.get('week').innerHTML, /Past/);
+  assert.match(elements.get('week').innerHTML, /Today/);
+  assert.match(elements.get('week').innerHTML, /Upcoming/);
+  assert.ok(!elements.get('week').innerHTML.includes('data-swap-day="0"'));
+  assert.ok(!elements.get('week').innerHTML.includes('data-swap-day="4"'));
+  const source = before.week[2].sessions[0].exercises[0];
+  const choice = exerciseAlternatives(source.id, 'full')[0];
+  const swap = (day) => elements.get('week').listeners.change({ target: {
+    dataset: { swapDay: String(day), swapSession: '0', swapExercise: '0' }, value: choice.id,
+  } });
+  elements.get('workout-day').listeners.change({ target: { value: '0' } });
+  swap(0);
+  assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), JSON.stringify(before));
+  elements.get('workout-day').listeners.change({ target: { value: '2' } });
   elements.get('week').listeners.change({ target: {
-    dataset: { swapDay: '0', swapSession: '0', swapExercise: '0' },
-    value: byName('Incline Dumbbell Press').id,
+    dataset: { swapDay: '2', swapSession: '0', swapExercise: '0' },
+    value: choice.id,
   } });
   const after = JSON.parse(vm.runInContext('JSON.stringify(currentResult)', context));
-  assert.equal(after.week[0].sessions[0].exercises[0].name, 'Incline Dumbbell Press');
+  assert.equal(after.week[2].sessions[0].exercises[0].name, choice.name);
   assert.match(elements.get('week').innerHTML, /your choice/);
-  assert.ok(!elements.get('week').innerHTML.includes(`<option value="${byName('Barbell Bench Press').id}">`));
-  after.week[0].sessions[0].exercises[0] = before.week[0].sessions[0].exercises[0];
+  const saved = JSON.stringify(after);
+  after.week[2].sessions[0].exercises[0] = before.week[2].sessions[0].exercises[0];
   assert.deepEqual(after.week, before.week, 'all other exercises and sessions are unchanged');
-  vm.runInContext("state.equipment = 'home'; run();", context);
-  assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), JSON.stringify(before));
+  vm.runInContext("setBasePlan([{ type: 'legs', day: 1 }], 'a', storage);", context);
+  assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), saved);
+  clock.setDate(12); // Thursday: Wednesday's saved modification is now locked.
+  vm.runInContext('openWorkout()', context);
+  assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), saved);
+  elements.get('workout-day').listeners.change({ target: { value: '2' } });
+  swap(2);
+  assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), saved);
+  vm.runInContext("setBasePlan([{ type: 'legs', day: 1 }], 'b', storage);", context);
+  assert.notEqual(vm.runInContext('JSON.stringify(currentResult)', context), saved);
+  clock.setDate(16); // Next Monday gets the new base plan; old record stays stored.
+  vm.runInContext("setBasePlan([{ type: 'legs', day: 1 }], 'a', storage);", context);
+  assert.equal(vm.runInContext('currentResult.week[2].sessions.length', context), 0);
+  assert.equal(JSON.stringify(WW.createWorkoutStore(storage).load('a', '2026-11-09').result), saved);
 });
