@@ -239,7 +239,7 @@
           <label for="workout-day">Current workout day</label>
           <select id="workout-day"></select>
           <p id="week-context" class="hint"></p>
-          <p class="hint">Past workouts are read-only. Select today or an upcoming day to switch its exercises. Past does not mean completed.</p>
+          <p class="hint">Select any weekday to follow its routine and switch its exercises, regardless of today's date. Changes stay with that day's workout.</p>
           <p id="workout-storage-error" class="error" role="alert" hidden></p>
           <div id="week"><p class="empty">Your saved workouts will appear here.</p></div>
         </div>
@@ -295,10 +295,8 @@
       }
       $('week').innerHTML = '<div class="week">' + r.week.map((w, dayIndex) => {
         const parts = [];
-        const today = WW.calendar();
         const editable = WW.canEdit(workoutRecord.week, selectedDay, dayIndex);
-        const status = dayIndex < today.day ? 'Past' : dayIndex === today.day ? 'Today' : 'Upcoming';
-        parts.push('<p class="hint">' + status + (dayIndex === selectedDay ? ' · Selected' : '') + '</p>');
+        if (dayIndex === selectedDay) parts.push('<p class="hint">Selected workout</p>');
         let exerciseNumber = 0;
         w.activities.forEach((a) => parts.push(`<span class="chip sport">${a}</span>`));
         w.sessions.forEach((s, sessionIndex) => {

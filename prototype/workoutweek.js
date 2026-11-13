@@ -9,7 +9,7 @@
   }
   function canEdit(week, selected, day, now = new Date()) {
     const today = calendar(now);
-    return week === today.week && Number.isInteger(day) && day >= today.day && day <= 6 && day === selected;
+    return week === today.week && Number.isInteger(day) && day >= 0 && day <= 6 && day === selected;
   }
   function createWorkoutStore(storage) {
     const key = (id, week) => `flexweek:workouts:${id}:${week}`;
