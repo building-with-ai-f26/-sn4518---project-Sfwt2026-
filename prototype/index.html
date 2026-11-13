@@ -181,11 +181,33 @@
       </form>
     </section>
 
+    <!-- SCREEN: base week (onboarding step 2; also used to edit) -->
+    <section id="screen-week" class="card narrow" hidden>
+      <h2 id="week-title">Your usual week</h2>
+      <p class="hint" style="margin:0 0 16px">The routine you follow in a normal week. FlexWeek adjusts it when a week isn't normal.</p>
+      <form id="week-form" novalidate>
+        <div class="field">
+          <label class="label" for="wk-count">Training days per week</label>
+          <select id="wk-count"></select>
+        </div>
+        <div class="field">
+          <span class="label">Sessions</span>
+          <div id="wk-rows"></div>
+        </div>
+        <div id="wk-errors"></div>
+        <div class="actions">
+          <button class="primary" type="submit">Save base week</button>
+          <button id="week-cancel" type="button" hidden>Cancel</button>
+        </div>
+      </form>
+    </section>
+
     <!-- SCREEN: weekly planner (the Build 1 prototype) -->
     <section id="screen-main" hidden>
     <div class="profile-bar">
       <div class="who" id="who"></div>
       <div class="actions" style="margin:0">
+        <button id="edit-week-bar" type="button">Edit base week</button>
         <button id="edit-profile" type="button">Edit profile</button>
         <button id="switch-profile" type="button">Switch person</button>
       </div>
@@ -197,7 +219,7 @@
         <div class="card">
           <h2>1 · Base weekly plan</h2>
           <div id="plan"></div>
-          <button id="add-session" type="button">+ Add session</button>
+          <button id="edit-week" type="button">Edit base week</button>
         </div>
 
         <div class="card">
@@ -254,13 +276,10 @@
       DAYS.map((d, i) => `<option value="${i}"${i === Number(selected) ? ' selected' : ''}>${d}</option>`).join('');
 
     function renderInputs() {
+      // Read-only: the base week is set on its own screen ("Edit base week").
       $('plan').innerHTML = state.plan.length
-        ? state.plan.map((s, i) => `
-            <div class="row">
-              <select data-list="plan" data-i="${i}" data-k="type" aria-label="Session type">${options(SESSION_TYPES, s.type)}</select>
-              <select data-list="plan" data-i="${i}" data-k="day" aria-label="Usual day">${dayOptions(s.day)}</select>
-              <button class="icon-btn" data-remove="plan" data-i="${i}" type="button" aria-label="Remove session">✕</button>
-            </div>`).join('')
+        ? '<div class="week" style="margin-bottom:12px">' + state.plan.map((s) => `
+            <div class="day"><div class="day-name">${DAYS[s.day]}</div><div><span class="chip session">${SESSION_TYPES[s.type].name}</span></div></div>`).join('') + '</div>'
         : '<p class="empty">No sessions yet.</p>';
 
       $('acts').innerHTML = state.acts.length
@@ -324,31 +343,36 @@
       renderInputs();
     });
     $('days').addEventListener('input', (e) => { state.days = Number(e.target.value); });
-    $('add-session').addEventListener('click', () => {
-      const used = state.plan.map((s) => s.day);
-      const free = DAYS.findIndex((_, i) => !used.includes(i));
-      state.plan.push({ type: 'full', day: free < 0 ? 0 : free });
-      renderInputs();
-    });
     $('add-act').addEventListener('click', () => { state.acts.push({ type: 'soccer', day: 3 }); renderInputs(); });
     $('run').addEventListener('click', run);
+    // Example week on top of the user's own base week: one day fewer, soccer Thursday, home equipment.
     $('example').addEventListener('click', () => {
-      state.plan = [{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }];
-      state.days = 2;
+      state.days = Math.max(1, state.plan.length - 1);
       state.acts = [{ type: 'soccer', day: 3 }];
       state.equipment = 'home';
       renderInputs();
       run();
     });
 
+    // Called by the onboarding script when a person's saved base week is loaded or edited.
+    function setBasePlan(week) {
+      state.plan = week.map((s) => ({ type: s.type, day: s.day }));
+      state.days = state.plan.length;
+      $('week').innerHTML = '<p class="empty">Fill in this week and press <strong>Adjust my week</strong>, or try <strong>Load example</strong>.</p>';
+      $('changes').innerHTML = '<p class="empty">Changes will appear here.</p>';
+      renderInputs();
+    }
+
     renderInputs();
   </script>
 
   <script src="profile.js"></script>
+  <script src="baseweek.js"></script>
   <script>
-    // ---- Onboarding step 1: profile (saved on this device only) ----
+    // ---- Onboarding: step 1 profile, step 2 base week (both saved on this device only) ----
     (function () {
       const { GOALS, bmi, validateProfile, createStore } = window.FlexWeekProfile;
+      const BW = window.FlexWeekBaseWeek;
       const $ = (id) => document.getElementById(id);
       const form = $('profile-form');
       const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -365,6 +389,7 @@
         $('storage-notice').hidden = false;
       }
       const store = createStore(storage);
+      const weekStore = BW.createWeekStore(storage);
 
       let editingId = null; // null = creating a new profile
 
@@ -372,7 +397,7 @@
         `<label class="radio"><input type="radio" name="goal" value="${k}" /> <span>${v}</span></label>`).join('');
 
       function show(screen) {
-        ['picker', 'profile', 'main'].forEach((s) => { $('screen-' + s).hidden = s !== screen; });
+        ['picker', 'profile', 'week', 'main'].forEach((s) => { $('screen-' + s).hidden = s !== screen; });
       }
 
       // Form fields as a plain object. `goal` is missing when no radio is checked; validateProfile reports it.
@@ -436,8 +461,72 @@
         show('profile');
       }
 
+      // ---- Step 2: base week ----
+      let weekRows = []; // [{ type, day }] being edited
+
+      $('wk-count').innerHTML = [1, 2, 3, 4, 5, 6, 7].map((n) => `<option value="${n}">${n}</option>`).join('');
+
+      function renderWeekRows() {
+        $('wk-count').value = String(weekRows.length);
+        const opts = (obj, sel) => Object.entries(obj).map(([k, v]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${v}</option>`).join('');
+        const dayOpts = (sel) => BW.DAYS.map((d, i) => `<option value="${i}"${i === sel ? ' selected' : ''}>${d}</option>`).join('');
+        $('wk-rows').innerHTML = weekRows.map((s, i) => `
+          <div class="row">
+            <select data-wk="${i}" data-k="day" aria-label="Day ${i + 1} weekday">${dayOpts(s.day)}</select>
+            <select data-wk="${i}" data-k="type" aria-label="Day ${i + 1} session type">${opts(BW.SESSION_TYPES, s.type)}</select>
+          </div>`).join('');
+        $('wk-errors').innerHTML = '';
+      }
+
+      function openWeek(id) {
+        const saved = weekStore.loadWeek(id);
+        $('week-title').textContent = saved ? 'Edit base week' : 'Your usual week';
+        $('week-cancel').hidden = !saved;
+        weekRows = saved || BW.defaultWeek(3);
+        renderWeekRows();
+        show('week');
+      }
+
+      // Changing the number of days keeps the rows already set and fills new ones from the default.
+      $('wk-count').addEventListener('change', (e) => {
+        const n = Number(e.target.value);
+        if (n <= weekRows.length) {
+          weekRows = weekRows.slice(0, n);
+        } else {
+          const used = weekRows.map((s) => s.day);
+          const extra = BW.defaultWeek(n).filter((s) => !used.includes(s.day));
+          for (let d = 0; extra.length < n - weekRows.length && d < 7; d++) {
+            if (!used.includes(d) && !extra.some((s) => s.day === d)) extra.push({ type: 'full', day: d });
+          }
+          weekRows = weekRows.concat(extra.slice(0, n - weekRows.length));
+        }
+        renderWeekRows();
+      });
+      $('wk-rows').addEventListener('change', (e) => {
+        const t = e.target;
+        if (!t.dataset.wk) return;
+        weekRows[Number(t.dataset.wk)][t.dataset.k] = t.dataset.k === 'day' ? Number(t.value) : t.value;
+      });
+      $('week-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = store.getCurrentId();
+        const r = weekStore.saveWeek(id, weekRows);
+        if (!r.ok) {
+          $('wk-errors').innerHTML = r.errors.map((m) => `<p class="field-error" role="alert">${esc(m)}</p>`).join('');
+          return;
+        }
+        openMain(id);
+      });
+      $('week-cancel').addEventListener('click', () => openMain(store.getCurrentId()));
+      $('edit-week').addEventListener('click', () => openWeek(store.getCurrentId()));
+      $('edit-week-bar').addEventListener('click', () => openWeek(store.getCurrentId()));
+
+      // Planner. A person without a base week yet (new, or saved before step 2 existed) sets one up first.
       function openMain(id) {
         store.setCurrentId(id);
+        const week = weekStore.loadWeek(id);
+        if (!week) { openWeek(id); return; }
+        setBasePlan(week);
         const p = store.loadProfile(id).profile;
         const value = bmi(p.heightCm, p.weightKg);
         $('who').innerHTML = `<strong>${esc(p.nickname)}</strong> · ${GOALS[p.goal]} · BMI ${value.toFixed(1)}`;

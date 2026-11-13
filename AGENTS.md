@@ -5,11 +5,11 @@
 ## 1. Project Overview
 - **What this repo builds:** FlexWeek, a training coach that rewrites a weekly workout plan around real-life constraints (fewer days, other sports, available equipment) and gives a one-line reason for each change.
 - **Primary user & core workflow:** See the living PRD in `docs/index.html`.
-- **Tech stack (Build 1):** Plain HTML + JavaScript, no dependencies, no server, no AI calls. Rules engine in `prototype/coach.js`; user profile (validation, BMI, on-device storage) in `prototype/profile.js`; UI in `prototype/index.html`. Tests use Node's built-in test runner (Node 18+).
+- **Tech stack (Build 1):** Plain HTML + JavaScript, no dependencies, no server, no AI calls. Rules engine in `prototype/coach.js`; user profile (validation, BMI, on-device storage) in `prototype/profile.js`; base week (onboarding step 2: days + session type per day, saved per profile, fed to the coach as `basePlan`) in `prototype/baseweek.js`; UI in `prototype/index.html`. Tests use Node's built-in test runner (Node 18+).
 
 ## 2. Commands
 - **Install dependencies:** none.
-- **Run locally:** open `prototype/index.html` in a browser (double-click it). `coach.js` and `profile.js` must stay in the same folder. Profiles are saved in the browser's localStorage on that device only.
+- **Run locally:** open `prototype/index.html` in a browser (double-click it). `coach.js`, `profile.js` and `baseweek.js` must stay in the same folder. Profiles and base weeks are saved in the browser's localStorage on that device only.
 - **Run deterministic tests:** `node --test tests/`
 - **Run model evals:** n/a yet (no model in Build 1).
 
