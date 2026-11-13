@@ -76,14 +76,31 @@ test('0 days → rest week', () => {
 test('home equipment swaps barbell lifts', () => {
   const r = adjustWeek({ basePlan: ULF, daysAvailable: 3, activities: [], equipment: 'home' });
   const lower = allSessions(r).find((s) => s.label === 'Lower');
-  assert.ok(lower.exercises.some((e) => e.name === 'Goblet squat'));
-  assert.ok(r.changes.some((c) => c.kind === 'equipment' && /Back squat → Goblet squat/.test(c.text)));
+  assert.deepEqual(lower.exercises.map((e) => e.name),
+    ['Bulgarian Split Squat', 'Stiff-Legged Dumbbell Deadlift', 'Dumbbell Lunge', 'Standing Dumbbell Calf Raise']);
+  assert.ok(r.changes.some((c) => c.kind === 'equipment' && /Back Squat → Bulgarian Split Squat/.test(c.text)));
+  // No pull-up bar at home and nothing else trains lats first, so the swap falls back to a row that works them.
+  const upper = allSessions(r).find((s) => s.label === 'Upper');
+  assert.deepEqual(upper.exercises.map((e) => e.name),
+    ['Dumbbell Bench Press', 'One-Arm Dumbbell Row', 'Dumbbell Shoulder Press', 'Chest-Supported Dumbbell Row']);
 });
 
 test('limited machines swaps to machine versions', () => {
   const r = adjustWeek({ basePlan: ULF, daysAvailable: 3, activities: [], equipment: 'limited' });
   const lower = allSessions(r).find((s) => s.label === 'Lower');
-  assert.ok(lower.exercises.some((e) => e.name === 'Leg press'));
+  assert.deepEqual(lower.exercises.map((e) => e.name), ['Leg Press', 'Stiff-Legged Dumbbell Deadlift', 'Dumbbell Lunge', 'Standing Calf Raise']);
+});
+
+test('full gym keeps every planned exercise; no setup repeats or loses an exercise in a session', () => {
+  const plan = ['upper', 'lower', 'full', 'push', 'pull', 'legs'].map((type, day) => ({ type, day }));
+  const full = adjustWeek({ basePlan: plan, daysAvailable: 6, activities: [], equipment: 'full' });
+  assert.ok(!full.changes.some((c) => c.kind === 'equipment'));
+  ['full', 'home', 'limited'].forEach((equipment) => {
+    allSessions(adjustWeek({ basePlan: plan, daysAvailable: 6, activities: [], equipment })).forEach((s) => {
+      assert.equal(s.exercises.length, 4, equipment + ' ' + s.label);
+      assert.equal(new Set(s.exercises.map((e) => e.name)).size, 4, equipment + ' ' + s.label);
+    });
+  });
 });
 
 test('never puts two sessions on the same day', () => {

@@ -5,12 +5,13 @@
 ## 1. Project Overview
 - **What this repo builds:** FlexWeek, a training coach that rewrites a weekly workout plan around real-life constraints (fewer days, other sports, available equipment) and gives a one-line reason for each change.
 - **Primary user & core workflow:** See the living PRD in `docs/index.html`.
-- **Tech stack (Build 1):** Plain HTML + JavaScript, no dependencies, no server, no AI calls. Rules engine in `prototype/coach.js`; user profile (validation, BMI, on-device storage) in `prototype/profile.js`; base week (onboarding step 2: days + session type per day, saved per profile, fed to the coach as `basePlan`) in `prototype/baseweek.js`; UI in `prototype/index.html`. Tests use Node's built-in test runner (Node 18+).
+- **Tech stack (Build 1):** Plain HTML + JavaScript, no dependencies, no server, no AI calls. Rules engine in `prototype/coach.js`; user profile (validation, BMI, on-device storage) in `prototype/profile.js`; base week (onboarding step 2: days + session type per day, saved per profile, fed to the coach as `basePlan`) in `prototype/baseweek.js`; UI in `prototype/index.html`. Exercise catalog (120 curated exercises with physical-equipment lists and a rule-based `alternatives()` lookup) in `prototype/exercises.js` — generated; the coach picks and swaps its exercises from it. Tests use Node's built-in test runner (Node 18+).
 
 ## 2. Commands
 - **Install dependencies:** none.
-- **Run locally:** open `prototype/index.html` in a browser (double-click it). `coach.js`, `profile.js` and `baseweek.js` must stay in the same folder. Profiles and base weeks are saved in the browser's localStorage on that device only.
+- **Run locally:** open `prototype/index.html` in a browser (double-click it). `exercises.js`, `coach.js`, `profile.js` and `baseweek.js` must stay in the same folder. Profiles and base weeks are saved in the browser's localStorage on that device only.
 - **Run deterministic tests:** `node --test tests/`
+- **Rebuild the exercise catalog:** edit `scripts/catalog-picks.txt`, then `node scripts/build-catalog.js` (reads `data/exercises.json`, the public-domain free-exercise-db; writes `prototype/exercises.js`). Never edit `prototype/exercises.js` by hand. `node scripts/exercise-db.js` looks things up in the raw db.
 - **Run model evals:** n/a yet (no model in Build 1).
 
 ## 3. Non-Negotiable Engineering Rules

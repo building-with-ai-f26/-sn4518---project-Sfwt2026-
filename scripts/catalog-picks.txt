@@ -1,0 +1,166 @@
+# FlexWeek exercise catalog: the curated picks.
+# One exercise per line, four columns separated by " | ":
+#
+#   exact free-exercise-db name | equipment | display name | fixes
+#
+# equipment = the physical things you need, separated by commas, or "-" for none.
+#   Use the same word for the same thing everywhere (one "adjustable bench", not flat/incline benches),
+#   because a later build filters exercises by what each gym site actually has.
+# display name = optional; leave empty to keep the db name.
+# fixes = optional corrections to the db, e.g. force=pull or mechanic=isolation.
+#
+# After editing, rebuild the catalog:  node scripts/build-catalog.js
+
+# --- chest
+Barbell Bench Press - Medium Grip | barbell, adjustable bench, rack | Barbell Bench Press
+Barbell Incline Bench Press - Medium Grip | barbell, adjustable bench, rack | Incline Barbell Bench Press
+Dumbbell Bench Press | dumbbells, adjustable bench
+Incline Dumbbell Press | dumbbells, adjustable bench
+Dumbbell Flyes | dumbbells, adjustable bench | Dumbbell Fly
+Machine Bench Press | chest press machine | Machine Chest Press
+Leverage Incline Chest Press | plate-loaded incline press machine | Plate-Loaded Incline Chest Press
+Butterfly | pec deck machine | Pec Deck Fly | force=push
+Cable Crossover | cable crossover machine
+Pushups | - | Push-Up
+Dips - Chest Version | dip bars | Chest Dip
+
+# --- shoulders
+Standing Military Press | barbell, rack | Overhead Press
+Dumbbell Shoulder Press | dumbbells
+Machine Shoulder (Military) Press | shoulder press machine | Machine Shoulder Press
+Side Lateral Raise | dumbbells | Dumbbell Lateral Raise
+Standing Low-Pulley Deltoid Raise | cable machine | Cable Lateral Raise
+Lateral Raise - With Bands | resistance band | Band Lateral Raise
+Front Dumbbell Raise | dumbbells
+Reverse Flyes | dumbbells, adjustable bench | Dumbbell Reverse Fly
+Reverse Machine Flyes | pec deck machine | Reverse Pec Deck Fly
+Face Pull | cable machine
+Band Pull Apart | resistance band
+
+# --- lats
+Pullups | pull-up bar | Pull-Up
+Chin-Up | pull-up bar
+Band Assisted Pull-Up | pull-up bar, resistance band | | force=pull
+Wide-Grip Lat Pulldown | lat pulldown machine
+Close-Grip Front Lat Pulldown | lat pulldown machine | Close-Grip Lat Pulldown
+Straight-Arm Pulldown | cable machine
+
+# --- middle back
+Bent Over Barbell Row | barbell
+One-Arm Dumbbell Row | dumbbells, adjustable bench
+Dumbbell Incline Row | dumbbells, adjustable bench | Chest-Supported Dumbbell Row
+Seated Cable Rows | seated cable row machine | Seated Cable Row
+Lying T-Bar Row | chest-supported t-bar row machine | Chest-Supported T-Bar Row
+Leverage Iso Row | plate-loaded row machine | Plate-Loaded Row
+Inverted Row | barbell, rack
+
+# --- traps
+Barbell Shrug | barbell
+Dumbbell Shrug | dumbbells
+
+# --- lower back
+Barbell Deadlift | barbell | Deadlift
+Hyperextensions (Back Extensions) | back extension bench | Back Extension
+
+# --- biceps
+Barbell Curl | barbell
+EZ-Bar Curl | ez curl bar
+Dumbbell Bicep Curl | dumbbells
+Hammer Curls | dumbbells | Hammer Curl
+Incline Dumbbell Curl | dumbbells, adjustable bench
+Preacher Curl | barbell, preacher bench
+Machine Preacher Curls | preacher curl machine | Machine Preacher Curl
+Standing Biceps Cable Curl | cable machine | Cable Curl
+
+# --- triceps
+Triceps Pushdown | cable machine
+Cable Rope Overhead Triceps Extension | cable machine | Cable Overhead Triceps Extension
+EZ-Bar Skullcrusher | ez curl bar, adjustable bench
+Standing Dumbbell Triceps Extension | dumbbells | Dumbbell Overhead Triceps Extension
+Close-Grip Barbell Bench Press | barbell, adjustable bench, rack
+Dips - Triceps Version | dip bars | Triceps Dip
+Bench Dips | adjustable bench | Bench Dip
+Dip Machine | seated dip machine | Seated Dip Machine
+
+# --- forearms
+Palms-Up Barbell Wrist Curl Over A Bench | barbell, adjustable bench | Barbell Wrist Curl
+
+# --- quadriceps
+Barbell Squat | barbell, rack | Back Squat
+Front Barbell Squat | barbell, rack | Front Squat
+Goblet Squat | kettlebell
+Bodyweight Squat | -
+Leg Press | leg press machine
+Hack Squat | hack squat machine
+Smith Machine Squat | smith machine
+Leg Extensions | leg extension machine | Leg Extension
+Dumbbell Lunges | dumbbells | Dumbbell Lunge
+Bodyweight Walking Lunge | -
+Split Squat with Dumbbells | dumbbells, adjustable bench | Bulgarian Split Squat
+Trap Bar Deadlift | trap bar
+
+# --- hamstrings
+Romanian Deadlift | barbell
+Stiff-Legged Dumbbell Deadlift | dumbbells
+Lying Leg Curls | lying leg curl machine | Lying Leg Curl
+Seated Leg Curl | seated leg curl machine
+Good Morning | barbell, rack | | force=pull
+Ball Leg Curl | exercise ball | Exercise Ball Leg Curl
+Glute Ham Raise | glute-ham developer
+
+# --- glutes
+Barbell Hip Thrust | barbell, adjustable bench
+Butt Lift (Bridge) | - | Glute Bridge
+Single Leg Glute Bridge | -
+One-Legged Cable Kickback | cable machine | Cable Glute Kickback
+Pull Through | cable machine | Cable Pull-Through
+
+# --- abductors / adductors
+Thigh Abductor | hip abduction machine | Hip Abduction Machine
+Thigh Adductor | hip adduction machine | Hip Adduction Machine
+Monster Walk | resistance band | Band Monster Walk
+Band Hip Adductions | resistance band | Band Hip Adduction
+
+# --- calves
+Standing Calf Raises | standing calf raise machine | Standing Calf Raise
+Seated Calf Raise | seated calf raise machine
+Calf Press On The Leg Press Machine | leg press machine | Leg Press Calf Raise
+Standing Dumbbell Calf Raise | dumbbells
+
+# --- abdominals
+Plank | -
+Side Bridge | - | Side Plank | mechanic=isolation
+Crunches | - | Crunch
+Russian Twist | -
+Cable Crunch | cable machine
+Ab Crunch Machine | ab crunch machine
+Hanging Leg Raise | pull-up bar
+Knee/Hip Raise On Parallel Bars | captain's chair | Captain's Chair Knee Raise
+Ab Roller | ab wheel | Ab Wheel Rollout
+
+# --- stretches / mobility
+Child's Pose | -
+Cat Stretch | -
+World's Greatest Stretch | -
+Kneeling Hip Flexor | - | Kneeling Hip Flexor Stretch
+Seated Floor Hamstring Stretch | -
+Calf Stretch Hands Against Wall | - | Wall Calf Stretch
+On Your Side Quad Stretch | - | Side-Lying Quad Stretch
+Ankle On The Knee | - | Figure-Four Glute Stretch
+Knee Across The Body | - | Knee-Across-Body Stretch
+Adductor/Groin | - | Groin Stretch
+Chest And Front Of Shoulder Stretch | body bar
+Shoulder Stretch | - | Cross-Body Shoulder Stretch | force=static
+Triceps Stretch | -
+One Arm Against Wall | - | Wall Lat Stretch
+Side Neck Stretch | -
+
+# --- cardio
+Running, Treadmill | treadmill | Treadmill Run
+Walking, Treadmill | treadmill | Treadmill Walk
+Bicycling, Stationary | stationary bike | Stationary Bike
+Recumbent Bike | recumbent bike
+Elliptical Trainer | elliptical
+Rowing, Stationary | rowing machine | Rowing Machine
+Stairmaster | stair climber | Stair Climber
+Rope Jumping | jump rope | Jump Rope

@@ -12,10 +12,14 @@
  *   2. Schedule      — place sessions on days, avoiding sport days, the day before a sport that
  *                      loads the same muscles, the day after it, and back-to-back same-muscle sessions.
  *   3. Volume        — if a sport loads a muscle group this week, cut that group's lifts from 3 to 2 sets.
- *   4. Equipment     — swap exercises for home / limited-machine versions.
+ *   4. Equipment     — swap any exercise the user's equipment can't do for an alternative
+ *                      from the exercise catalog (exercises.js) that it can.
  */
 (function (root) {
   'use strict';
+
+  // The exercise catalog: exercises.js must be loaded before this file in the browser.
+  const CATALOG = typeof module !== 'undefined' && module.exports ? require('./exercises.js') : root.FlexWeekCatalog;
 
   const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -44,36 +48,40 @@
 
   const EQUIPMENT = {
     full: 'Full gym',
-    home: 'Home (dumbbells, bands, bodyweight)',
+    home: 'Home (dumbbells, bench, bands, bodyweight)',
     limited: 'Limited machines (machines, cables, light dumbbells; no barbell rack)',
   };
   const EQUIPMENT_SHORT = { full: 'Full gym', home: 'Home setup', limited: 'Limited machines' };
-  const EQUIP_COLUMN = { full: 1, home: 2, limited: 3 };
 
-  // [muscle group, full gym, home, limited machines]
-  const EXERCISES = {
-    squat: ['lower', 'Back squat', 'Goblet squat', 'Leg press'],
-    rdl: ['lower', 'Romanian deadlift', 'DB Romanian deadlift', 'Seated leg curl'],
-    lunge: ['lower', 'Walking lunge', 'Walking lunge', 'Walking lunge'],
-    calf: ['lower', 'Standing calf raise', 'Single-leg calf raise', 'Leg-press calf raise'],
-    bench: ['upper', 'Bench press', 'DB floor press', 'Machine chest press'],
-    ohp: ['upper', 'Overhead press', 'DB shoulder press', 'Machine shoulder press'],
-    row: ['upper', 'Barbell row', 'One-arm DB row', 'Seated cable row'],
-    pullup: ['upper', 'Pull-up', 'Band pulldown', 'Lat pulldown'],
-    dip: ['upper', 'Dip', 'Push-up', 'Assisted dip machine'],
-    triceps: ['upper', 'Cable triceps pushdown', 'Band triceps pushdown', 'Cable triceps pushdown'],
-    facepull: ['upper', 'Cable face pull', 'Band face pull', 'Cable face pull'],
-    curl: ['upper', 'Barbell curl', 'DB curl', 'Cable curl'],
+  // The physical equipment each setup has, using the catalog's equipment names.
+  const NOT_IN_LIMITED = ['barbell', 'rack', 'trap bar', 'ez curl bar', 'kettlebell'];
+  const AVAILABLE = {
+    full: CATALOG.EQUIPMENT_ITEMS,
+    home: ['dumbbells', 'adjustable bench', 'resistance band'],
+    limited: CATALOG.EQUIPMENT_ITEMS.filter((item) => !NOT_IN_LIMITED.includes(item)),
   };
 
+  // Look up a catalog exercise by its display name (fails loudly on a typo).
+  function ex(name) {
+    const e = CATALOG.EXERCISES.find((x) => x.name === name);
+    if (!e) throw new Error('Exercise not in catalog: ' + name);
+    return e;
+  }
+
+  // The full-gym exercises for each session type. Other setups swap these by rule (see applyEquipment).
   const SESSION_EXERCISES = {
-    upper: ['bench', 'row', 'ohp', 'pullup'],
-    lower: ['squat', 'rdl', 'lunge', 'calf'],
-    full: ['squat', 'bench', 'row', 'rdl'],
-    push: ['bench', 'ohp', 'dip', 'triceps'],
-    pull: ['pullup', 'row', 'facepull', 'curl'],
-    legs: ['squat', 'rdl', 'lunge', 'calf'],
+    upper: ['Barbell Bench Press', 'Bent Over Barbell Row', 'Overhead Press', 'Pull-Up'],
+    lower: ['Back Squat', 'Romanian Deadlift', 'Dumbbell Lunge', 'Standing Calf Raise'],
+    full: ['Back Squat', 'Barbell Bench Press', 'Bent Over Barbell Row', 'Romanian Deadlift'],
+    push: ['Barbell Bench Press', 'Overhead Press', 'Triceps Dip', 'Triceps Pushdown'],
+    pull: ['Pull-Up', 'Bent Over Barbell Row', 'Face Pull', 'Barbell Curl'],
+    legs: ['Back Squat', 'Romanian Deadlift', 'Dumbbell Lunge', 'Standing Calf Raise'],
   };
+  Object.keys(SESSION_EXERCISES).forEach((type) => { SESSION_EXERCISES[type] = SESSION_EXERCISES[type].map(ex); });
+
+  // Which of the coach's two muscle groups an exercise counts toward.
+  const LOWER_MUSCLES = ['quadriceps', 'hamstrings', 'glutes', 'calves', 'abductors', 'adductors'];
+  const groupOf = (e) => (LOWER_MUSCLES.includes(e.primaryMuscles[0]) ? 'lower' : 'upper');
 
   const BASE_SETS = 3;
   const REDUCED_SETS = 2;
@@ -299,17 +307,51 @@
   }
 
   // ---------- Rule 4: swap exercises for the available equipment ----------
+  // Finds a replacement the user can do, trying the closest match first:
+  //   1. a catalog alternative (same primary muscle, same push/pull, same compound/isolation)
+  //   2. same primary muscle and same push/pull
+  //   3. same push/pull, with the muscle worked as a secondary muscle
+  // Within each step, weighted exercises beat bodyweight ones, and nothing already in the session is repeated.
+  function findSwap(e, available, usedIds) {
+    const muscle = e.primaryMuscles[0];
+    const doable = CATALOG.EXERCISES.filter((x) =>
+      x.category === 'strength' && x.force === e.force && !usedIds.includes(x.id) && CATALOG.canDo(x, available));
+    const steps = [
+      CATALOG.alternatives(e.id, available).filter((x) => !usedIds.includes(x.id)),
+      doable.filter((x) => x.primaryMuscles[0] === muscle),
+      doable.filter((x) => x.secondaryMuscles.includes(muscle)),
+    ];
+    for (const options of steps) {
+      const pick = options.find((x) => x.equipment.length) || options[0];
+      if (pick) return pick;
+    }
+    return null;
+  }
+
   function applyEquipment(list, equipment) {
-    const col = EQUIP_COLUMN[equipment];
+    const available = AVAILABLE[equipment];
     list.forEach((s) => {
+      const planned = SESSION_EXERCISES[s.type];
+      const usedIds = planned.filter((e) => CATALOG.canDo(e, available)).map((e) => e.id);
       const swaps = [];
-      s.exercises = SESSION_EXERCISES[s.type].map((key) => {
-        const e = EXERCISES[key];
-        if (e[col] !== e[1]) swaps.push(e[1] + ' → ' + e[col]);
-        return { name: e[col], group: e[0], sets: s.reduced.includes(e[0]) ? REDUCED_SETS : BASE_SETS };
+      const dropped = [];
+      s.exercises = [];
+      planned.forEach((e) => {
+        let chosen = e;
+        if (!CATALOG.canDo(e, available)) {
+          chosen = findSwap(e, available, usedIds);
+          if (!chosen) return dropped.push(e.name);
+          usedIds.push(chosen.id);
+          swaps.push(e.name + ' → ' + chosen.name);
+        }
+        const group = groupOf(e);
+        s.exercises.push({ id: chosen.id, name: chosen.name, group, sets: s.reduced.includes(group) ? REDUCED_SETS : BASE_SETS });
       });
       if (swaps.length) {
         s.changes.push({ kind: 'equipment', text: EQUIPMENT_SHORT[equipment] + ' swaps in ' + label(s) + ': ' + swaps.join(', ') + '.' });
+      }
+      if (dropped.length) {
+        s.changes.push({ kind: 'equipment', text: 'Left out of ' + label(s) + ': ' + dropped.join(', ') + ' (nothing in the catalog replaces it with this equipment).' });
       }
     });
   }
@@ -324,7 +366,7 @@
    * }
    */
   function adjustWeek(input) {
-    const equipment = EQUIP_COLUMN[input.equipment] ? input.equipment : 'full';
+    const equipment = AVAILABLE[input.equipment] ? input.equipment : 'full';
     const toDay = (v) => (v === null || v === undefined || v === '' ? null : Number(v));
     const daysAvailable = Math.max(0, Math.min(7, Math.floor(Number(input.daysAvailable) || 0)));
     const activities = (input.activities || [])
