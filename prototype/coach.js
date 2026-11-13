@@ -418,7 +418,26 @@
     return { week, changes, notes, equipment: EQUIPMENT[equipment] };
   }
 
-  const api = { adjustWeek, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT };
+  // Manual choices use the same eligibility rule, displayed in catalog order.
+  function exerciseAlternatives(id, equipment) {
+    const available = AVAILABLE[equipment];
+    if (!available) return [];
+    const ids = new Set(CATALOG.alternatives(id, available).map((e) => e.id));
+    return CATALOG.EXERCISES.filter((e) => ids.has(e.id));
+  }
+
+  function swapExercise(exercise, replacementId, equipment) {
+    const replacement = exerciseAlternatives(exercise.id, equipment).find((e) => e.id === replacementId);
+    if (!replacement) return null;
+    return {
+      ...exercise,
+      id: replacement.id,
+      name: replacement.name,
+      swapReason: 'Swapped ' + exercise.name + ' for ' + replacement.name + ': your choice, with the same primary muscle and movement type.',
+    };
+  }
+
+  const api = { adjustWeek, exerciseAlternatives, swapExercise, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FlexWeek = api;
 })(this);

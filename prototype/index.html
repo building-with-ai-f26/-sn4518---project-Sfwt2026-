@@ -261,7 +261,9 @@
   <script src="exercises.js"></script>
   <script src="coach.js"></script>
   <script>
-    const { adjustWeek, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT } = window.FlexWeek;
+    const { adjustWeek, exerciseAlternatives, swapExercise, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT } = window.FlexWeek;
+    let currentResult = null;
+    let resultEquipment = null;
 
     const state = {
       plan: [{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }],
@@ -304,12 +306,21 @@
         $('changes').innerHTML = '';
         return;
       }
-      $('week').innerHTML = '<div class="week">' + r.week.map((w) => {
+      $('week').innerHTML = '<div class="week">' + r.week.map((w, dayIndex) => {
         const parts = [];
         w.activities.forEach((a) => parts.push(`<span class="chip sport">${a}</span>`));
-        w.sessions.forEach((s) => {
+        w.sessions.forEach((s, sessionIndex) => {
           parts.push(`<span class="chip session">${s.label}</span>`);
-          parts.push('<ul class="ex">' + s.exercises.map((e) => `<li>${e.name} ${e.sets}×</li>`).join('') + '</ul>');
+          parts.push('<ul class="ex">' + s.exercises.map((e, exerciseIndex) => {
+            const choices = exerciseAlternatives(e.id, resultEquipment);
+            const control = choices.length
+              ? `<select data-swap-day="${dayIndex}" data-swap-session="${sessionIndex}" data-swap-exercise="${exerciseIndex}" aria-label="Swap ${e.name}">
+                  <option value="">Swap exercise…</option>
+                  ${choices.map((a) => `<option value="${a.id}">${a.name}</option>`).join('')}
+                </select>`
+              : '<small>No alternatives available</small>';
+            return `<li>${e.name} ${e.sets}× ${control}${e.swapReason ? `<p class="meta">${e.swapReason}</p>` : ''}</li>`;
+          }).join('') + '</ul>');
         });
         if (!parts.length) parts.push('<span class="rest">Rest</span>');
         return `<div class="day"><div class="day-name">${w.day}</div><div>${parts.join('')}</div></div>`;
@@ -323,8 +334,22 @@
     }
 
     function run() {
-      renderResult(adjustWeek({ basePlan: state.plan, daysAvailable: state.days, activities: state.acts, equipment: state.equipment }));
+      resultEquipment = state.equipment;
+      currentResult = adjustWeek({ basePlan: state.plan, daysAvailable: state.days, activities: state.acts, equipment: resultEquipment });
+      renderResult(currentResult);
     }
+
+    $('week').addEventListener('change', (event) => {
+      const t = event.target;
+      if (t.dataset.swapDay === undefined || !t.value || !currentResult) return;
+      const session = currentResult.week[Number(t.dataset.swapDay)].sessions[Number(t.dataset.swapSession)];
+      const index = Number(t.dataset.swapExercise);
+      const replacement = swapExercise(session.exercises[index], t.value, resultEquipment);
+      if (!replacement) return;
+      session.exercises[index] = replacement;
+      currentResult.notes = currentResult.notes.filter((n) => n !== 'Your base plan already fits this week. No changes needed.');
+      renderResult(currentResult);
+    });
 
     document.addEventListener('change', (e) => {
       const t = e.target;
@@ -357,6 +382,8 @@
 
     // Called by the onboarding script when a person's saved base week is loaded or edited.
     function setBasePlan(week) {
+      currentResult = null;
+      resultEquipment = null;
       state.plan = week.map((s) => ({ type: s.type, day: s.day }));
       state.days = state.plan.length;
       $('week').innerHTML = '<p class="empty">Fill in this week and press <strong>Adjust my week</strong>, or try <strong>Load example</strong>.</p>';
