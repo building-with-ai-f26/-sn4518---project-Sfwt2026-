@@ -5,6 +5,7 @@
 ## 1. Project Overview
 - **What this repo builds:** FlexWeek, a training coach that rewrites a weekly workout plan around real-life constraints (fewer days, other sports, available equipment) and gives a one-line reason for each change.
 - **Primary user & core workflow:** See the living PRD in `docs/index.html`.
+- **Handoff between agents (Claude Code / Codex):** read the newest entry in `journal/handoff.md` before starting; add a new entry on top before you stop (what's done, decisions, open questions, next step).
 - **Tech stack (Build 1):** Plain HTML + JavaScript, no dependencies, no server, no AI calls. Rules engine in `prototype/coach.js`; user profile (validation, BMI, on-device storage) in `prototype/profile.js`; base week (onboarding step 2: days + session type per day, saved per profile, fed to the coach as `basePlan`) in `prototype/baseweek.js`; UI in `prototype/index.html`. Exercise catalog (120 curated exercises with physical-equipment lists and a rule-based `alternatives()` lookup) in `prototype/exercises.js` — generated; the coach picks and swaps its exercises from it. Tests use Node's built-in test runner (Node 18+).
 
 ## 2. Commands
