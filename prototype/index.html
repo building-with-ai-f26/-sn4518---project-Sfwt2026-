@@ -87,12 +87,109 @@
     .changes li.warning .tag { color: var(--warn); }
     .error { color: #c0392b; font-weight: 600; }
     .footer { margin-top: 24px; font-size: 13px; color: var(--muted); }
+
+    /* Onboarding: profile + picker */
+    [hidden] { display: none !important; }
+    .narrow { max-width: 520px; }
+    .field { margin-bottom: 16px; }
+    .field > .label { display: block; font-weight: 600; margin-bottom: 6px; }
+    .optional { font-weight: 400; color: var(--muted); font-size: 13px; }
+    .field input[type="number"], .field input[type="text"] {
+      font: inherit; color: var(--text); background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; width: 110px;
+    }
+    .field input[type="text"] { width: 220px; }
+    .field .unit { color: var(--muted); margin: 0 10px 0 4px; }
+    .field.invalid input { border-color: #c0392b; }
+    .field-error { color: #c0392b; font-size: 13px; margin: 4px 0 0; }
+    .seg { display: inline-flex; gap: 14px; }
+    .bmi { padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); margin-bottom: 16px; font-size: 14px; }
+    .bmi strong { font-size: 16px; }
+    .profile-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .profile-bar .who { font-size: 14px; color: var(--muted); }
+    .profile-bar .who strong { color: var(--text); }
+    .picker { display: grid; gap: 8px; margin-bottom: 12px; }
+    .picker button { text-align: left; padding: 10px 12px; }
+    .notice { padding: 10px 12px; border-radius: 8px; background: var(--warn-soft); color: var(--warn); font-size: 14px; margin-bottom: 16px; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>FlexWeek</h1>
     <p class="sub">Your training plan assumes a perfect week. Tell FlexWeek this week's constraints and get an adjusted week that keeps the balance, with a reason for every change.</p>
+
+    <p id="storage-notice" class="notice" hidden>This browser won't let FlexWeek save on this device, so your profile lasts only until you close the page.</p>
+
+    <!-- SCREEN: who's training? (shown when this device has profiles but none is selected) -->
+    <section id="screen-picker" class="card narrow" hidden>
+      <h2>Who's training?</h2>
+      <div id="picker-list" class="picker"></div>
+      <button id="picker-new" type="button">+ New profile</button>
+    </section>
+
+    <!-- SCREEN: profile (first screen for a new user; also used to edit) -->
+    <section id="screen-profile" class="card narrow" hidden>
+      <h2 id="profile-title">About you</h2>
+      <p class="hint" style="margin:0 0 16px">Saved on this device only. No account, nothing sent anywhere.</p>
+      <form id="profile-form" novalidate>
+        <div class="field" data-field="nickname">
+          <label class="label" for="pf-nickname">Name <span class="optional">(optional, helps if others use this device)</span></label>
+          <input id="pf-nickname" name="nickname" type="text" maxlength="40" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <span class="label">Units</span>
+          <span class="seg">
+            <label><input type="radio" name="units" value="metric" checked /> cm / kg</label>
+            <label><input type="radio" name="units" value="imperial" /> ft / lb</label>
+          </span>
+        </div>
+
+        <div class="field" data-field="age">
+          <label class="label" for="pf-age">Age</label>
+          <input id="pf-age" name="age" type="number" min="13" max="100" step="1" inputmode="numeric" /><span class="unit">years</span>
+        </div>
+
+        <div class="field" data-field="height">
+          <span class="label">Height</span>
+          <span data-units="metric"><input name="heightCm" type="number" step="0.1" inputmode="decimal" aria-label="Height in centimetres" /><span class="unit">cm</span></span>
+          <span data-units="imperial" hidden><input name="heightFt" type="number" step="1" inputmode="numeric" aria-label="Height, feet" /><span class="unit">ft</span><input name="heightIn" type="number" step="0.5" min="0" max="11.5" inputmode="decimal" aria-label="Height, inches" /><span class="unit">in</span></span>
+        </div>
+
+        <div class="field" data-field="weight">
+          <span class="label">Weight</span>
+          <span data-units="metric"><input name="weightKg" type="number" step="0.1" inputmode="decimal" aria-label="Weight in kilograms" /><span class="unit">kg</span></span>
+          <span data-units="imperial" hidden><input name="weightLb" type="number" step="0.1" inputmode="decimal" aria-label="Weight in pounds" /><span class="unit">lb</span></span>
+        </div>
+
+        <div id="bmi" class="bmi">BMI: <strong>–</strong> <span class="optional">(calculated from height and weight)</span></div>
+
+        <div class="field" data-field="bodyFatPct">
+          <label class="label" for="pf-bf">Body fat <span class="optional">(optional)</span></label>
+          <input id="pf-bf" name="bodyFatPct" type="number" step="0.1" inputmode="decimal" /><span class="unit">%</span>
+        </div>
+
+        <div class="field" data-field="goal">
+          <span class="label">Main goal</span>
+          <div id="pf-goals"></div>
+        </div>
+
+        <div class="actions">
+          <button class="primary" type="submit">Save profile</button>
+          <button id="profile-cancel" type="button" hidden>Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- SCREEN: weekly planner (the Build 1 prototype) -->
+    <section id="screen-main" hidden>
+    <div class="profile-bar">
+      <div class="who" id="who"></div>
+      <div class="actions" style="margin:0">
+        <button id="edit-profile" type="button">Edit profile</button>
+        <button id="switch-profile" type="button">Switch person</button>
+      </div>
+    </div>
 
     <div class="layout">
       <!-- INPUTS -->
@@ -134,6 +231,7 @@
         </div>
       </div>
     </div>
+    </section>
 
     <p class="footer">Prototype · fixed rules only (no AI, no network). Everything runs in this page. Not medical or injury advice.</p>
   </div>
@@ -244,6 +342,150 @@
     });
 
     renderInputs();
+  </script>
+
+  <script src="profile.js"></script>
+  <script>
+    // ---- Onboarding step 1: profile (saved on this device only) ----
+    (function () {
+      const { GOALS, bmi, validateProfile, createStore } = window.FlexWeekProfile;
+      const $ = (id) => document.getElementById(id);
+      const form = $('profile-form');
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+      // localStorage can be blocked (private mode, strict settings). Fall back to memory so the app still works.
+      let storage;
+      try {
+        storage = window.localStorage;
+        storage.setItem('flexweek:test', '1');
+        storage.removeItem('flexweek:test');
+      } catch (e) {
+        const mem = {};
+        storage = { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; } };
+        $('storage-notice').hidden = false;
+      }
+      const store = createStore(storage);
+
+      let editingId = null; // null = creating a new profile
+
+      $('pf-goals').innerHTML = Object.entries(GOALS).map(([k, v]) =>
+        `<label class="radio"><input type="radio" name="goal" value="${k}" /> <span>${v}</span></label>`).join('');
+
+      function show(screen) {
+        ['picker', 'profile', 'main'].forEach((s) => { $('screen-' + s).hidden = s !== screen; });
+      }
+
+      // Form fields as a plain object. `goal` is missing when no radio is checked; validateProfile reports it.
+      const readForm = () => Object.fromEntries(new FormData(form).entries());
+
+      function setUnits(units) {
+        form.querySelectorAll('[data-units]').forEach((el) => { el.hidden = el.dataset.units !== units; });
+      }
+
+      // Show BMI as soon as height and weight are valid, even if other fields are still empty.
+      function updateBmi() {
+        const m = validateProfile(readForm()).measured;
+        const value = bmi(m.heightCm, m.weightKg);
+        $('bmi').querySelector('strong').textContent = value === null ? '–' : value.toFixed(1);
+      }
+
+      function showErrors(errors) {
+        form.querySelectorAll('.field').forEach((f) => {
+          f.classList.remove('invalid');
+          const old = f.querySelector('.field-error');
+          if (old) old.remove();
+          const msg = errors[f.dataset.field];
+          if (msg) {
+            f.classList.add('invalid');
+            f.insertAdjacentHTML('beforeend', `<p class="field-error" role="alert">${esc(msg)}</p>`);
+          }
+        });
+      }
+
+      function fillForm(p) {
+        form.reset();
+        showErrors({});
+        const units = p ? p.units : 'metric';
+        form.units.value = units;
+        setUnits(units);
+        if (p) {
+          form.nickname.value = p.nickname || '';
+          form.age.value = p.age;
+          form.heightCm.value = Math.round(p.heightCm * 10) / 10;
+          const totalIn = p.heightCm / 2.54;
+          let ft = Math.floor(totalIn / 12);
+          let inch = Math.round((totalIn - ft * 12) * 2) / 2;
+          if (inch >= 12) { ft += 1; inch = 0; }
+          form.heightFt.value = ft;
+          form.heightIn.value = inch;
+          form.weightKg.value = Math.round(p.weightKg * 10) / 10;
+          form.weightLb.value = Math.round((p.weightKg / 0.45359237) * 10) / 10;
+          form.bodyFatPct.value = p.bodyFatPct === null ? '' : p.bodyFatPct;
+          const g = form.querySelector(`input[name="goal"][value="${p.goal}"]`);
+          if (g) g.checked = true;
+        }
+        updateBmi();
+      }
+
+      function openProfile(id) {
+        editingId = id || null;
+        const rec = id ? store.loadProfile(id) : null;
+        $('profile-title').textContent = rec ? 'Edit profile' : 'About you';
+        $('profile-cancel').hidden = !rec && store.listProfiles().length === 0;
+        fillForm(rec ? rec.profile : null);
+        show('profile');
+      }
+
+      function openMain(id) {
+        store.setCurrentId(id);
+        const p = store.loadProfile(id).profile;
+        const value = bmi(p.heightCm, p.weightKg);
+        $('who').innerHTML = `<strong>${esc(p.nickname)}</strong> · ${GOALS[p.goal]} · BMI ${value.toFixed(1)}`;
+        show('main');
+      }
+
+      function openPicker() {
+        store.setCurrentId(null);
+        $('picker-list').innerHTML = store.listProfiles().map((p) =>
+          `<button type="button" data-pick="${esc(p.id)}">${esc(p.nickname)}</button>`).join('');
+        show('picker');
+      }
+
+      form.addEventListener('change', (e) => {
+        if (e.target.name === 'units') setUnits(e.target.value);
+        updateBmi();
+      });
+      form.addEventListener('input', updateBmi);
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const r = validateProfile(readForm());
+        showErrors(r.errors);
+        if (!r.ok) {
+          const first = form.querySelector('.field.invalid input');
+          if (first) first.focus();
+          return;
+        }
+        const rec = store.saveProfile(r.profile, editingId);
+        openMain(rec.id);
+      });
+      $('profile-cancel').addEventListener('click', () => {
+        if (editingId) openMain(editingId);
+        else openPicker();
+      });
+      $('edit-profile').addEventListener('click', () => openProfile(store.getCurrentId()));
+      $('switch-profile').addEventListener('click', openPicker);
+      $('picker-new').addEventListener('click', () => openProfile(null));
+      $('picker-list').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-pick]');
+        if (b) openMain(b.dataset.pick);
+      });
+
+      // Start: last used profile → planner; other profiles → picker; none → profile form.
+      const current = store.getCurrentId();
+      if (current) openMain(current);
+      else if (store.listProfiles().length) openPicker();
+      else openProfile(null);
+    })();
   </script>
 </body>
 </html>
