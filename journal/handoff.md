@@ -5,6 +5,22 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Claude Code: exercise info buttons (placeholders)
+
+**Done (uncommitted):** Every exercise row in `prototype/index.html` now has an ⓘ button (an "i" in a circle) after the name, on every day including read-only ones. It opens one shared bubble placed under the button, with the exercise name, a text area and a GIF area. The bubble sits outside the exercise tables so their horizontal scroll box can't cut it off. It closes on ✕, a second click, a click outside, Esc (focus returns to the ⓘ), window resize and any re-render. Content comes from `exerciseInfo(id)`, which returns placeholders for now ("Description coming soon." / "GIF coming soon"). It is looked up live and never stored in saved weeks. Also replaced the outdated "Base-week edits apply next week" hint. New `tests/info.test.js` (3 tests); the stub in `tests/swaps.test.js` gained `window.addEventListener`. 74 tests pass. Checked in Chrome on desktop width via a temporary localhost server: bubble opens under the icon, Esc closes it and returns focus, no console errors. Phone width not checked.
+
+**Decided with user:** placeholder text for now; GIFs will be online links (GIPHY or a site with more serious exercise GIFs), so `gif` will hold a URL. The user will supply the text and GIF content later.
+
+**Open:** The footer says "no network", which won't be true once GIFs load from the web. Real content will go into `exerciseInfo()`, or into the catalog through `scripts/build-catalog.js` (`exercises.js` already has an unused `gif: ''` field and an `instructions` list).
+
+---
+
+## 2026-11-16 — Claude Code: base-week edits update the current week
+
+**Done (uncommitted):** User reported that changing the base week from Mon/Wed/Fri to 2 days still showed 3 days. Cause: `openWorkout()` reloaded this week's saved snapshot and ignored the new base plan, because earlier work applied base edits only from the next Monday. Now when the base plan's session types differ from the snapshot on any day, this week is rebuilt from the new base plan. Days whose session types are unchanged keep the old day, including manual swaps. Reopening an unchanged base week does not touch the record. `tests/swaps.test.js` updated to cover going from 3 days to 2 with swaps kept. 71 tests pass. Browser not checked.
+
+---
+
 ## 2026-11-16 — Claude Code: PostHog installed, Build 2 log
 
 **Done:** PostHog web snippet (project key is public; US host) added to the `<head>` of `docs/index.html` and `prototype/index.html`. User confirmed click and form-submit events from the local app show up in PostHog Activity. `tests/swaps.test.js` now picks the planner's inline script by skipping the one containing `posthog` (it used to take the first inline script). 71 tests pass. Build 2 log entry in `docs/index.html` filled in.

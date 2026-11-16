@@ -81,6 +81,7 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
   const data = new Map();
   const storage = { getItem: (k) => data.get(k) || null, setItem: (k, v) => data.set(k, v) };
   const context = vm.createContext({ document, Date: FixedDate, storage, window: {
+    addEventListener() {},
     FlexWeek: require('../prototype/coach.js'),
     FlexWeekWorkoutWeek: { ...WW, calendar: () => WW.calendar(clock),
       canEdit: (week, selected, day) => WW.canEdit(week, selected, day, clock) },
@@ -115,11 +116,18 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
   const after = JSON.parse(vm.runInContext('JSON.stringify(currentResult)', context));
   assert.equal(after.week[2].sessions[0].exercises[0].name, choice.name);
   assert.match(elements.get('week').innerHTML, /your choice/);
-  const saved = JSON.stringify(after);
+  const swapped = JSON.parse(JSON.stringify(after));
   after.week[2].sessions[0].exercises[0] = before.week[2].sessions[0].exercises[0];
   assert.deepEqual(after.week, before.week, 'all other exercises and sessions are unchanged');
-  vm.runInContext("setBasePlan([{ type: 'legs', day: 1 }], 'a', storage);", context);
-  assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), saved);
+  // Editing the base week (3 days -> 2) updates this week; unchanged days keep their swaps.
+  vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'upper', day: 2 }], 'a', storage);", context);
+  const edited = JSON.parse(vm.runInContext('JSON.stringify(currentResult)', context));
+  assert.equal(edited.week[4].sessions.length, 0, 'the removed Friday workout is gone this week');
+  assert.deepEqual(edited.week[0], swapped.week[0]);
+  assert.deepEqual(edited.week[2], swapped.week[2]);
+  const saved = JSON.stringify(edited);
+  vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'upper', day: 2 }], 'a', storage);", context);
+  assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), saved, 'reopening an unchanged base week keeps the record');
   vm.runInContext('openWorkout()', context);
   assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), saved);
   elements.get('workout-day').listeners.change({ target: { value: '2' } });

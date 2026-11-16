@@ -96,6 +96,32 @@
     .ex select { width: 100%; min-width: 120px; max-width: 100%; }
     .ex .meta { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
     .ex .sets { display: block; color: var(--muted); font-size: 12px; }
+    /* Exercise info: an "i" in a circle beside each exercise name opens one shared bubble. */
+    .info-btn {
+      display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
+      width: 22px; height: 22px; margin-left: 6px; padding: 0; border-radius: 50%;
+      border: 1.5px solid var(--muted); background: transparent; color: var(--muted);
+      font: italic 700 13px/1 Georgia, "Times New Roman", serif;
+    }
+    .info-btn:hover, .info-btn[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .info-bubble {
+      position: absolute; z-index: 10; width: 320px; padding: 14px 16px;
+      background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+    .info-bubble::before {
+      content: ''; position: absolute; top: -7px; left: calc(var(--arrow-x, 27px) - 6px);
+      width: 12px; height: 12px; background: var(--card);
+      border-left: 1px solid var(--border); border-top: 1px solid var(--border); transform: rotate(45deg);
+    }
+    .info-bubble h3 { margin: 0 32px 6px 0; font-size: 15px; }
+    .info-bubble p { margin: 0 0 10px; font-size: 14px; color: var(--muted); }
+    .info-close { position: absolute; top: 8px; right: 8px; padding: 2px 8px; border: none; background: transparent; color: var(--muted); }
+    .info-gif {
+      display: flex; align-items: center; justify-content: center; min-height: 160px; overflow: hidden;
+      border-radius: 8px; background: var(--bg); color: var(--muted); font-size: 13px;
+    }
+    .info-gif img { display: block; width: 100%; height: auto; }
     .changes { margin: 0; padding: 0; list-style: none; }
     .changes li { padding: 8px 10px; border-radius: 8px; margin-bottom: 6px; background: var(--bg); font-size: 14px; }
     .changes li.warning { background: var(--warn-soft); color: var(--warn); }
@@ -238,7 +264,7 @@
           <button id="edit-week" type="button">Edit base week</button>
         </div>
 
-<p class="hint">Base-week edits apply next week. This week’s recorded workouts stay unchanged.</p>
+<p class="hint">Saving a new base week also updates this week. Days whose session didn't change keep their exercise swaps.</p>
       </div>
 
       <!-- OUTPUT -->
@@ -261,6 +287,15 @@
     </section>
 
     <p class="footer">Prototype · fixed rules only (no AI, no network). Everything runs in this page. Not medical or injury advice.</p>
+  </div>
+
+  <!-- Exercise info bubble: one shared bubble, moved under whichever ⓘ was clicked.
+       It lives outside the exercise tables so their scroll box can't cut it off. -->
+  <div id="exercise-info" class="info-bubble" role="dialog" aria-labelledby="exercise-info-title" hidden>
+    <button id="exercise-info-close" class="info-close" type="button" aria-label="Close">✕</button>
+    <h3 id="exercise-info-title"></h3>
+    <p id="exercise-info-text"></p>
+    <div id="exercise-info-gif" class="info-gif"></div>
   </div>
 
   <script src="exercises.js"></script>
@@ -297,6 +332,7 @@
     }
 
     function renderResult(r) {
+      closeInfo(false);
       if (r.error) {
         $('week').innerHTML = `<p class="error">${r.error}</p>`;
         $('changes').innerHTML = '';
@@ -318,7 +354,8 @@
                   ${choices.map((a) => `<option value="${a.id}">${a.name}</option>`).join('')}
                 </select>`
               : '<small>No alternatives available</small>';
-            return `<tr><th scope="row">${++exerciseNumber}</th><td>${e.name}<span class="sets">${e.sets} sets</span>${e.swapReason ? `<p class="meta">${e.swapReason}</p>` : ''}</td><td>${control}</td></tr>`;
+            const info = `<button type="button" class="info-btn" data-info="${dayIndex}-${sessionIndex}-${exerciseIndex}" aria-label="About ${e.name}" aria-expanded="false" aria-controls="exercise-info">i</button>`;
+            return `<tr><th scope="row">${++exerciseNumber}</th><td>${e.name}${info}<span class="sets">${e.sets} sets</span>${e.swapReason ? `<p class="meta">${e.swapReason}</p>` : ''}</td><td>${control}</td></tr>`;
           }).join('') + '</tbody></table></div>');
         });
         if (!w.sessions.length && !w.activities.length) parts.push('<span class="rest">Rest</span>');
@@ -346,9 +383,20 @@
       const today = WW.calendar();
       selectedDay = today.day;
       workoutRecord = workoutStore.load(workoutProfile, today.week);
+      const fresh = adjustWeek({ basePlan: state.plan, daysAvailable: state.plan.length, activities: [], equipment: 'full' });
       if (!workoutRecord) {
-        workoutRecord = { version: 1, week: today.week, equipment: 'full',
-          result: adjustWeek({ basePlan: state.plan, daysAvailable: state.plan.length, activities: [], equipment: 'full' }) };
+        workoutRecord = { version: 1, week: today.week, equipment: 'full', result: fresh };
+      } else {
+        // An edited base week updates this week too. Days whose sessions are unchanged keep their swaps.
+        const types = (d) => d.sessions.map((s) => s.type).join(',');
+        const old = workoutRecord.result;
+        if (old.week.some((d, i) => types(d) !== types(fresh.week[i]))) {
+          fresh.week = fresh.week.map((d, i) => (types(d) === types(old.week[i]) ? old.week[i] : d));
+          if (fresh.week.some((d) => d.sessions.some((s) => s.exercises.some((e) => e.swapReason)))) {
+            fresh.notes = fresh.notes.filter((n) => n !== 'Your base plan already fits this week. No changes needed.');
+          }
+          workoutRecord.result = fresh;
+        }
       }
       currentResult = workoutRecord.result;
       resultEquipment = workoutRecord.equipment;
@@ -381,6 +429,72 @@
       saveWorkout();
       renderResult(currentResult);
     });
+
+    // ---- Exercise info bubble ----
+    // Content per exercise. Placeholders until the real text and GIF links (e.g. GIPHY) are chosen;
+    // only this function needs to change then. Looked up live, never stored in saved weeks.
+    function exerciseInfo(id) {
+      return { text: 'Description coming soon.', gif: '' };
+    }
+
+    let infoButton = null; // the ⓘ whose bubble is open, or null
+
+    function closeInfo(returnFocus) {
+      if (!infoButton) return;
+      $('exercise-info').hidden = true;
+      infoButton.setAttribute('aria-expanded', 'false');
+      if (returnFocus) infoButton.focus();
+      infoButton = null;
+    }
+
+    function openInfo(button) {
+      const [d, s, x] = button.dataset.info.split('-').map(Number);
+      const exercise = currentResult && currentResult.week[d]?.sessions[s]?.exercises[x];
+      if (!exercise) return;
+      closeInfo(false);
+      const info = exerciseInfo(exercise.id);
+      $('exercise-info-title').textContent = exercise.name;
+      $('exercise-info-text').textContent = info.text;
+      const gif = $('exercise-info-gif');
+      if (info.gif) {
+        const img = document.createElement('img');
+        img.src = info.gif;
+        img.alt = exercise.name + ' demonstration';
+        gif.replaceChildren(img);
+      } else {
+        gif.textContent = 'GIF coming soon';
+      }
+      // Place the bubble just under the button, kept 16px inside the screen edges.
+      const bubble = $('exercise-info');
+      const page = document.documentElement.clientWidth;
+      const width = Math.min(320, page - 32);
+      const r = button.getBoundingClientRect();
+      const left = Math.max(16, Math.min(r.left - 16, page - width - 16));
+      const arrow = Math.max(14, Math.min(width - 14, r.left + r.width / 2 - left));
+      bubble.style.width = width + 'px';
+      bubble.style.left = left + window.scrollX + 'px';
+      bubble.style.top = r.bottom + window.scrollY + 8 + 'px';
+      bubble.style.setProperty('--arrow-x', arrow + 'px');
+      bubble.hidden = false;
+      button.setAttribute('aria-expanded', 'true');
+      infoButton = button;
+      $('exercise-info-close').focus();
+    }
+
+    $('week').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-info]');
+      if (!button) return;
+      if (button === infoButton) closeInfo(false);
+      else openInfo(button);
+    });
+    $('exercise-info-close').addEventListener('click', () => closeInfo(true));
+    document.addEventListener('click', (event) => {
+      if (infoButton && !$('exercise-info').contains(event.target) && !infoButton.contains(event.target)) closeInfo(false);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeInfo(true);
+    });
+    window.addEventListener('resize', () => closeInfo(false));
 
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && workoutStore && workoutProfile) {
