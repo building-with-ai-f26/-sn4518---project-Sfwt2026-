@@ -32,6 +32,15 @@ test('every exercise has every field, with allowed values', () => {
   });
 });
 
+test('every exercise says which wger exercise it matches: a wger id, or null for no match', () => {
+  EXERCISES.forEach((e) => {
+    assert.ok(e.wgerId === null || (Number.isInteger(e.wgerId) && e.wgerId > 0), 'wgerId: ' + e.name);
+  });
+  assert.equal(BY_ID[idOf('Barbell Bench Press')].wgerId, 73); // wger's "Bench Press"
+  assert.equal(BY_ID[idOf('Band Lateral Raise')].wgerId, null); // nothing similar in wger
+  assert.ok(EXERCISES.filter((e) => e.wgerId).length >= 60, 'most of the catalog has a wger match');
+});
+
 test('strength exercises always say push/pull/static and compound/isolation', () => {
   EXERCISES.filter((e) => e.category === 'strength').forEach((e) => {
     assert.ok(e.force, 'force: ' + e.name);
