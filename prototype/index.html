@@ -116,6 +116,9 @@
     }
     .info-bubble h3 { margin: 0 32px 6px 0; font-size: 15px; }
     .info-bubble p { margin: 0 0 10px; font-size: 14px; color: var(--muted); }
+    /* The description: keeps its line breaks, and scrolls inside the bubble when it is long. */
+    .info-bubble .info-text { color: var(--text); white-space: pre-line; max-height: 40vh; overflow-y: auto; }
+    .info-bubble .info-source { font-size: 12px; }
     .info-close { position: absolute; top: 8px; right: 8px; padding: 2px 8px; border: none; background: transparent; color: var(--muted); }
     .info-gif {
       display: flex; align-items: center; justify-content: center; min-height: 160px; overflow: hidden;
@@ -286,7 +289,7 @@
     </div>
     </section>
 
-    <p class="footer">Prototype · fixed rules only (no AI, no network). Everything runs in this page. Not medical or injury advice.</p>
+    <p class="footer">Prototype · fixed rules only (no AI). Exercise descriptions load from wger.de when you're online. Not medical or injury advice.</p>
   </div>
 
   <!-- Exercise info bubble: one shared bubble, moved under whichever ⓘ was clicked.
@@ -294,13 +297,15 @@
   <div id="exercise-info" class="info-bubble" role="dialog" aria-labelledby="exercise-info-title" hidden>
     <button id="exercise-info-close" class="info-close" type="button" aria-label="Close">✕</button>
     <h3 id="exercise-info-title"></h3>
-    <p id="exercise-info-text"></p>
+    <p id="exercise-info-text" class="info-text" tabindex="0"></p>
+    <p id="exercise-info-source" class="info-source" hidden>Description: <a href="https://wger.de" target="_blank" rel="noopener">wger.de</a> (CC BY-SA)</p>
     <div id="exercise-info-gif" class="info-gif"></div>
   </div>
 
   <script src="exercises.js"></script>
   <script src="coach.js"></script>
   <script src="workoutweek.js"></script>
+  <script src="wger.js"></script>
   <script>
     const { adjustWeek, exerciseAlternatives, swapExercise, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT } = window.FlexWeek;
     let currentResult = null;
@@ -431,10 +436,19 @@
     });
 
     // ---- Exercise info bubble ----
-    // Content per exercise. Placeholders until the real text and GIF links (e.g. GIPHY) are chosen;
-    // only this function needs to change then. Looked up live, never stored in saved weeks.
-    function exerciseInfo(id) {
-      return { text: 'Description coming soon.', gif: '' };
+    // The description comes from wger (see wger.js) when the catalog has a wgerId for the exercise.
+    // Otherwise, or when wger has no text or can't be reached, it is our own catalog instructions.
+    // Looked up live, never stored in saved weeks. The GIF is still a placeholder.
+    const wger = window.FlexWeekWger.createWgerClient((url, options) => fetch(url, options));
+
+    function catalogText(entry) {
+      return entry ? entry.instructions.join('\n\n') : 'No description for this exercise yet.';
+    }
+
+    // Puts a description in the bubble. fromWger shows the credit line that wger's license asks for.
+    function showInfoText(text, fromWger) {
+      $('exercise-info-text').textContent = text;
+      $('exercise-info-source').hidden = !fromWger;
     }
 
     let infoButton = null; // the ⓘ whose bubble is open, or null
@@ -452,13 +466,22 @@
       const exercise = currentResult && currentResult.week[d]?.sessions[s]?.exercises[x];
       if (!exercise) return;
       closeInfo(false);
-      const info = exerciseInfo(exercise.id);
+      const entry = window.FlexWeekCatalog.BY_ID[exercise.id];
       $('exercise-info-title').textContent = exercise.name;
-      $('exercise-info-text').textContent = info.text;
+      if (entry && entry.wgerId) {
+        showInfoText('Loading…', false);
+        // wger answers later. By then the bubble may be closed or showing another exercise: then do nothing.
+        const stillOpen = () => infoButton === button;
+        wger.description(entry.wgerId).then(
+          (text) => { if (stillOpen()) showInfoText(text || catalogText(entry), Boolean(text)); },
+          () => { if (stillOpen()) showInfoText(catalogText(entry), false); });
+      } else {
+        showInfoText(catalogText(entry), false);
+      }
       const gif = $('exercise-info-gif');
-      if (info.gif) {
+      if (entry && entry.gif) {
         const img = document.createElement('img');
-        img.src = info.gif;
+        img.src = entry.gif;
         img.alt = exercise.name + ' demonstration';
         gif.replaceChildren(img);
       } else {
