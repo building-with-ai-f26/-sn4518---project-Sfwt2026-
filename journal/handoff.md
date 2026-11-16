@@ -5,6 +5,16 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Claude Code: PostHog installed, Build 2 log
+
+**Done:** PostHog web snippet (project key is public; US host) added to the `<head>` of `docs/index.html` and `prototype/index.html`. User confirmed click and form-submit events from the local app show up in PostHog Activity. `tests/swaps.test.js` now picks the planner's inline script by skipping the one containing `posthog` (it used to take the first inline script). 71 tests pass. Build 2 log entry in `docs/index.html` filled in.
+
+**Not verified / open:** events from the published Product Page (needs Pages deploy), session replay (needs "Record user sessions" on in PostHog settings), pageview events. Build 2 log still has `$[0.00] · [0] hours` for the user to fill in; PRD on the page is still v1.
+
+**Next step:** still the **Modify remaining workouts** button from the 2026-11-13 entry below. Propose a plan first.
+
+---
+
 ## 2026-11-13 — Codex: next-feature reminder and delivery
 
 **Remind the user next session:** The next requested feature is a dedicated **Modify remaining workouts** button. Discuss and propose its implementation plan before coding; this entry records product direction only.

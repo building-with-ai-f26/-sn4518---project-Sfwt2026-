@@ -63,7 +63,9 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
   const fs = require('node:fs');
   const vm = require('node:vm');
   const html = fs.readFileSync(require.resolve('../prototype/index.html'), 'utf8');
-  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  // Skip the PostHog analytics snippet; run the planner's own inline script.
+  const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+    .map((m) => m[1]).find((s) => !s.includes('posthog'));
   const elements = new Map();
   const document = {
     getElementById(id) {
