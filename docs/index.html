@@ -167,6 +167,14 @@
         <strong>Demo:</strong> Local prototype with the example week: Upper / Lower / Full Body plan, only 2 training days, soccer Thursday, home equipment.
       </p>
       <img src="prototype.png" alt="FlexWeek prototype: base plan and constraints on the left, the adjusted Mon–Sun week and a list of changes with one-line reasons on the right" style="width:100%;height:auto;border:1px solid var(--border);border-radius:8px;" />
+      <p>
+        <strong>Build 2 API call:</strong> clicking the ⓘ next to an exercise calls the free wger exercise API live from the browser, with no key and no server:
+        <code>GET https://wger.de/api/v2/exercise-translation/?exercise=73&amp;language=2</code> (the description) and
+        <code>GET https://wger.de/api/v2/exerciseimage/?exercise=73</code> (the pictures, which flip between start and end position).
+        The bubble shows wger's answer, credited "wger.de (CC BY-SA)". If wger is offline or has nothing, it falls back to FlexWeek's own text and "GIF coming soon".
+      </p>
+      <img src="api-call-wger.png" alt="FlexWeek week view with the info bubble open for Barbell Bench Press: wger's description, the bench-press picture, and the line 'Description and pictures: wger.de (CC BY-SA)'" style="width:100%;max-width:448px;height:auto;border:1px solid var(--border);border-radius:8px;" />
+      <p class="meta">Screenshot of the local app on 2026-11-16: Monday's Barbell Bench Press, info bubble open, answer loaded live from wger.</p>
       <p class="meta">Live cloud app URL and two-minute video coming in Build 5.</p>
     </section>
 
