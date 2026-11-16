@@ -5,6 +5,43 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Codex: GitHub delivery of PRD v2 documentation
+
+**Authorized:** User requested putting the Product Page updates and notes into GitHub. Reviewed the two-file documentation diff and whitespace check; committing and pushing on build-2-profile-onboarding. Includes approved PRD v2, $0 additional spend and approximately 9 hours.
+
+**Delivery limitation:** GitHub CLI PR status returned HTTP 401 (authentication required). Git push uses separate credentials and is being attempted. A branch push alone does not update the published Product Page; merge into main is required. No app changes or new tests needed for this documentation-only delivery.
+
+---
+## 2026-11-16 — Codex: Build 2 cost and hours completed
+
+**Done:** User supplied 9 hours and confirmed use of an existing Claude subscription. Recorded approximately 9 hours and $0 additional spending in the PRD economics and Build 2 log. Verified the local Product Page already has PRD v2 and a written riskiest assumption at docs/index.html:208; the old placeholder is absent from that file. Earlier journal entries describe historical state. Changes remain local and uncommitted, so published/committed versions may differ.
+
+**Verification:** `git diff --check`; checked current PRD assumption and Build 2 cost/time text. No app code changed.
+
+**Next step:** Commit/push and merge when requested to publish the documentation updates.
+
+---
+## 2026-11-16 — Codex: approved PRD v2 added to Product Page
+
+**Done:** User approved PRD v2 and requested incorporation. Updated `docs/index.html` with the saved-routine workflow, shipped scope, equipment limits, riskiest assumption, proposed user evaluation, architecture, cost basis, analytics evidence limits and next-build direction. Updated Build 2 log's stale PRD wording, test count to 90 and picture support. Actual spend/hours remain pending. No app behavior changes.
+
+**Verification:** Reviewed documentation diff and ran `git diff --check`. App tests passed 90/90 in the preceding review; no app code changed. Browser layout and live analytics were not rechecked.
+
+**Next step:** Commit/push and merge when requested to update the published Product Page. Actual Build 2 spend/hours, remaining-workout implementation and unmatched wger review remain pending.
+
+---
+## 2026-11-16 — Codex: Build 2 PRD review and proposal
+
+**Done:** Read the latest handoffs, current Product Page PRD/build log and implementation. Proposed PRD v2 in conversation for user review; no Product Page or app changes. Current PRD v1 still promises a whole-week constraint workflow that the current UI no longer exposes. Build 2 should describe saved profiles/base weeks, immediate dated routines, any-selected-weekday editing, persistent manual swaps and wger info/pictures. Equipment is currently full gym in the workout UI; broader equipment/sport rules exist in the engine but are not an exposed current workflow.
+
+**Proposed direction:** Riskiest assumption is whether target users find the saved routine and explainable substitutions useful enough to return after a disrupted week. Separate proposed usability/return-use evaluation from actual evidence. Modify remaining workouts remains planned, with return-day scope and replacement/swap behavior still to define before implementation. Actual Build 2 hours/spend and outside-user results are not supplied; don't invent them. API marginal request cost is $0 with the current free wger integration, separate from total build/tool spend.
+
+**Verification:** `node --test tests/`: 90 pass, 0 fail. No new browser or live analytics verification. Existing Product Page Build 2 log still says 86 tests and PRD v1; update those when the PRD revision is approved.
+
+**Next step:** User reviews proposed PRD v2. Before changing multiple files, present the small documentation-edit plan and obtain approval under AGENTS.md. Keep the 42 unmatched wger exercises unchanged pending user review.
+
+---
+
 ## 2026-11-16 — Claude Code: wger API call in the info bubble
 
 **Start here (for Codex):**

@@ -184,44 +184,60 @@
       <p class="meta">Updated every week as we test with real users and learn what works.</p>
 
       <h3>1. Target User & The Job to Be Done</h3>
-      <p class="meta">PRD v1 · November 9, 2026</p>
+      <p class="meta">PRD v2 · November 16, 2026</p>
       <p><strong>The problem:</strong> My training plan assumes a perfect week. Real weeks have fewer gym days, soccer practice, or a gym without the right equipment, and I re-plan in my head every time.</p>
       <p><strong>Who is this for?</strong> Me and MBA friends who lift on a weekly plan and play other sports.</p>
       <p><strong>The painful "Before" workflow:</strong> Skip sessions or improvise substitutions on the spot; the week's balance falls apart.</p>
-      <p><strong>The "After" workflow with this product:</strong> Tell it this week's constraints and get an adjusted week that keeps the balance (muscle groups, volume) and respects other activities and equipment.</p>
+      <p><strong>The "After" workflow with Build 2:</strong> Save a base week once → open the current week immediately → select the weekday to follow → swap exercises with a short explanation. Changes are saved on this device.</p>
 
       <h3>2. Scope & Explicit Non-Goals</h3>
       <ul>
-        <li><strong>In Scope (Core Workflow):</strong> Set base plan once → enter this week's constraints (days available, other activities, gym/equipment) → get the adjusted week with a reason for each change.</li>
+        <li><strong>Profiles and base weeks:</strong> Save profiles and usual training days on the device, with Upper, Lower, Full Body, Push, Pull, and Legs sessions.</li>
+        <li><strong>Dated routines:</strong> Show the current week immediately. Edit any selected weekday, regardless of the actual calendar day.</li>
+        <li><strong>Exercise swaps:</strong> Match alternatives by primary muscle, push/pull, and compound/isolation type. Preserve sets and save swaps per profile and week.</li>
+        <li><strong>Exercise information:</strong> Load instructions and available pictures from wger, with catalog instructions when descriptions cannot load. Multiple pictures alternate to illustrate the movement; missing pictures show "GIF coming soon". Keep wger attribution in the bubble.</li>
+        <li><strong>Base-week edits:</strong> Update the current week while preserving days whose session types remain unchanged.</li>
         <li><strong>Out of Scope #1:</strong> Nutrition.</li>
-        <li><strong>Out of Scope #2:</strong> Live Whoop sync (not in Build 1; recovery data comes later).</li>
+        <li><strong>Out of Scope #2:</strong> Recovery-device integrations, including live Whoop sync.</li>
         <li><strong>Out of Scope #3:</strong> Injury or medical advice.</li>
       </ul>
-      <p><strong>How I'll know it works:</strong> Testers use it at least once a week and follow most of the adjusted plan.</p>
+      <p><strong>Current equipment scope:</strong> The workout UI assumes full-gym equipment. Other equipment and sport-adjustment rules exist in the engine but are not exposed in the current workflow.</p>
+      <p><strong>Also outside this build:</strong> Completion tracking, browsing previous weeks, cross-device sync, and AI-generated coaching. Stored routines do not establish whether someone completed a workout.</p>
 
-      <h3>3. How It Works Under the Hood & Riskiest Assumption (Week 2+)</h3>
-      <p><strong>Riskiest Assumption:</strong> [To decide in Build 2]</p>
-      <p><strong>Simple Architecture (Build 1):</strong> [Base plan + this week's constraints] → [Single web page, runs locally] → [Fixed rules in <code>prototype/coach.js</code>: merge sessions to fit days, move sessions away from sports, trim volume, swap exercises for equipment; no AI model yet] → [Adjusted week + one-line reason per change]</p>
+      <h3>3. Riskiest Assumption &amp; Validation</h3>
+      <p><strong>Riskiest assumption:</strong> A saved routine with understandable substitutions provides enough practical value that users return when their training week is disrupted.</p>
+      <p><strong>Proposed initial validation:</strong> Ask 3–5 target users to save a base week, open a selected workout, swap an exercise, and reload to find their change. Aim for at least 80% to finish without help. Follow up after one week to learn whether they returned and used the routine.</p>
+      <p>These are proposed evaluation criteria; outside-user results have not yet been established.</p>
 
-      <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
+      <h3>4. Architecture</h3>
+      <p>A browser page uses fixed JavaScript rules and a 120-exercise catalog to generate routines. Profiles, base weeks, and dated workout snapshots are stored locally on the device. Exercise information loads from wger when requested and is cached for the page session, with local instructions as a fallback. No AI model, backend, or API key is required.</p>
+
+      <h3>5. Unit Economics &amp; Analytics Snapshot</h3>
       <div class="grid-2">
         <div class="stat-box">
           <div class="stat-label">Cumulative Build Spend</div>
+          <div class="stat-value">$0.00 additional spending</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Est. Marginal API Cost Per User Run</div>
           <div class="stat-value">$0.00</div>
         </div>
         <div class="stat-box">
-          <div class="stat-label">Est. Cost Per User Run</div>
-          <div class="stat-value">[Not yet estimated]</div>
-        </div>
-        <div class="stat-box">
           <div class="stat-label">User Evidence (Analytics from Build 2)</div>
-          <div class="stat-value">[Not yet measured]</div>
+          <div class="stat-value">Outside-user results not yet established</div>
         </div>
         <div class="stat-box">
           <div class="stat-label">Sponsor Call (Week 6)</div>
           <div class="stat-value">TBD</div>
         </div>
       </div>
+      <p><strong>Cost basis:</strong> The current free wger integration and local rules engine have no per-run API charge. Build 2 used an existing Claude subscription and incurred $0 additional spending, with no paid APIs or infrastructure. Active work time was approximately 9 hours.</p>
+      <p><strong>Analytics evidence:</strong> PostHog is installed, and the build log records local events and replay verification. Published-page verification and outside-user usage remain unconfirmed.</p>
+      <p><strong>Next measurement step:</strong> Track onboarding completion, first workout viewed, first swap saved, and return use through explicit funnel events.</p>
+
+      <h3>6. Next Build</h3>
+      <p>Add <strong>Modify remaining workouts</strong>: choose a return day, select a session type separately for each remaining workout, and apply those changes together while preserving earlier workouts and the reusable base plan.</p>
+      <p>Before implementation, define which workouts count as remaining, how skipped days are represented, and whether replacing a session clears its manual swaps.</p>
     </section>
 
     <!-- WEEKLY BUILD LOG (Updated at least twice a week via Git commits) -->
@@ -257,10 +273,10 @@
       <div class="log-entry">
         <h3>Build 2 · Smallest Local Version & PostHog (Due Nov 16)</h3>
         <ul>
-          <li><strong>What shipped:</strong> The local prototype grew from a one-shot week rewriter into a small app that remembers the user. (1) Onboarding step 1: a profile screen saved on the device. (2) Onboarding step 2: a base week (which days, which session type each day) saved per profile and fed to the coach. (3) A 120-exercise catalog built from a public-domain dataset; the coach picks from it and swaps anything the user's equipment can't do. (4) Manual exercise swaps: each exercise offers alternatives with the same muscle, push/pull and compound/isolation type, filtered to the user's equipment, with sets kept. (5) A dated week: the whole week shows immediately, and the user picks any weekday to view or edit. Swaps are saved per profile in weekly snapshots, so past weeks are kept. (6) A real API call: every exercise has an ⓘ button, and opening it fetches that exercise's description from the free wger exercise database (<code>wger.de</code> REST API, no key needed) and shows it in a bubble. 78 of the 120 exercises are matched to a wger exercise; the rest, and any failed call, show the catalog's own instructions. 86 deterministic tests pass (<code>node --test tests/</code>). Local setup and the agent handoff rule are in <code>AGENTS.md</code>.</li>
+          <li><strong>What shipped:</strong> The local prototype grew from a one-shot week rewriter into a small app that remembers the user. (1) Onboarding step 1: a profile screen saved on the device. (2) Onboarding step 2: a base week (which days, which session type each day) saved per profile and fed to the coach. (3) A 120-exercise catalog built from a public-domain dataset; the coach picks from it and swaps anything the user's equipment can't do. (4) Manual exercise swaps: each exercise offers alternatives with the same muscle, push/pull and compound/isolation type, filtered to the user's equipment, with sets kept. (5) A dated week: the whole week shows immediately, and the user picks any weekday to view or edit. Swaps are saved per profile in weekly snapshots, so past weeks are kept. (6) A real API call: every exercise has an ⓘ button, and opening it fetches that exercise's description from the free wger exercise database (<code>wger.de</code> REST API, no key needed) and shows it in a bubble with available pictures (multiple pictures alternate). The bubble credits wger. 78 of the 120 exercises are matched to a wger exercise; the rest, and any failed call, show the catalog's own instructions. 90 deterministic tests pass (<code>node --test tests/</code>). Local setup and the agent handoff rule are in <code>AGENTS.md</code>.</li>
           <li><strong>PostHog:</strong> The snippet is installed in the <code>&lt;head&gt;</code> of this page and of <code>prototype/index.html</code>. Verified on the local app: after clicking around and submitting forms in <code>file://…/prototype/index.html</code>, pageview, click and form-submit events appeared under Activity in PostHog, and the session showed up in Session Replay. Not yet confirmed: the same events and a replay from this published page (it only starts reporting once this change is merged to <code>main</code> and deployed).</li>
-          <li><strong>What broke / changed in PRD:</strong> The PRD text on this page is still v1; I haven't updated it to v2 yet. What changed in practice: the old "adjust the whole week" action was removed until adjustments can be scoped to one day, and the user may now edit any selected weekday, not only today or later. Adding the PostHog snippet broke one test, which loaded the first inline script of the page; it now skips the analytics snippet. Known limits: I haven't checked the layout in a browser on a phone, and on first use the app can't reconstruct workouts from before it started saving. Next up: a "Modify remaining workouts" button for returning mid-week after skipped days.</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours <em>(fill in)</em></li>
+          <li><strong>What broke / changed in PRD:</strong> Updated this page to PRD v2: saved routines and explainable substitutions are the current workflow, with a proposed usability and return-use evaluation. Bulk modification remains planned work. What changed in practice: the old "adjust the whole week" action was removed until adjustments can be scoped to one day, and the user may now edit any selected weekday, not only today or later. Adding the PostHog snippet broke one test, which loaded the first inline script of the page; it now skips the analytics snippet. Known limits: I haven't checked the layout in a browser on a phone, and on first use the app can't reconstruct workouts from before it started saving. Next up: a "Modify remaining workouts" button for returning mid-week after skipped days.</li>
+          <li><strong>Cost & time this week:</strong> $0.00 additional spending · ~9 hours. Used an existing Claude subscription; no paid APIs or infrastructure.</li>
         </ul>
       </div>
 
