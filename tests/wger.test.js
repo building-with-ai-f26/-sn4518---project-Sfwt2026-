@@ -71,6 +71,27 @@ test('no English description gives an empty string, and that answer is cached to
   assert.equal(await createWgerClient(fakeFetch(wgerAnswer('')).fetchFn).description(5), '');
 });
 
+test('images asks the exerciseimage endpoint and returns the 400x400 thumbnails in wger order', async () => {
+  const { fetchFn, calls } = fakeFetch({ body: { count: 3, results: [
+    { image: 'https://wger.de/media/a.png', thumbnails: { small: 'https://wger.de/media/a-200.png', medium: 'https://wger.de/media/a-400.png' } },
+    { image: 'https://wger.de/media/b.png' }, // no thumbnail: use the full image
+    { image: 'javascript:alert(1)' }, // not https: dropped
+  ] } });
+  const urls = await createWgerClient(fetchFn).images(73);
+  assert.deepEqual(urls, ['https://wger.de/media/a-400.png', 'https://wger.de/media/b.png']);
+  assert.equal(calls[0].url, 'https://wger.de/api/v2/exerciseimage/?format=json&exercise=73');
+});
+
+test('images: none gives [], each exercise is fetched once, and text and images are separate requests', async () => {
+  const { fetchFn, calls } = fakeFetch((n) => (n === 1 ? { body: { count: 0, results: [] } } : wgerAnswer('<p>Text</p>')));
+  const client = createWgerClient(fetchFn);
+  assert.deepEqual(await client.images(73), []);
+  assert.deepEqual(await client.images(73), []);
+  assert.equal(calls.length, 1);
+  assert.equal(await client.description(73), 'Text');
+  assert.equal(calls.length, 2);
+});
+
 test('a failed call rejects and is not cached, so the next call tries again', async () => {
   const offline = fakeFetch((n) => (n === 1 ? new Error('offline') : wgerAnswer('<p>Back online</p>')));
   const client = createWgerClient(offline.fetchFn);

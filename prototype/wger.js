@@ -8,6 +8,7 @@
   'use strict';
 
   const API = 'https://wger.de/api/v2/exercise-translation/';
+  const IMAGES_API = 'https://wger.de/api/v2/exerciseimage/';
   const ENGLISH = 2; // wger's id for the English language
   const TIMEOUT_MS = 8000; // give up after 8 seconds so "Loading…" can't hang forever
 
@@ -40,36 +41,53 @@
    * fetchFn is the browser's fetch; tests pass a fake one so they never touch the network.
    */
   function createWgerClient(fetchFn) {
-    // wgerId -> the request for it (a Promise). Kept in memory only, so it lasts until the page is closed.
+    // 'text:73' or 'images:73' -> the request for it (a Promise). Kept in memory only, so it lasts until the page is closed.
     const cache = new Map();
 
-    async function load(wgerId) {
-      const url = API + '?format=json&language=' + ENGLISH + '&exercise=' + encodeURIComponent(wgerId);
+    async function getJson(url) {
       const response = await fetchFn(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
       if (!response.ok) throw new Error('wger answered ' + response.status);
-      const data = await response.json();
-      const translation = data.results && data.results[0];
-      return htmlToText(translation && translation.description);
+      return response.json();
+    }
+
+    // Each request is made once: later calls reuse the first request's answer.
+    // A failed request is forgotten, so the next call tries again.
+    function once(key, load) {
+      if (!cache.has(key)) {
+        const request = load();
+        cache.set(key, request);
+        request.catch(() => cache.delete(key));
+      }
+      return cache.get(key);
+    }
+
+    /** The description of one wger exercise as plain text ('' if wger has none in English). */
+    function description(wgerId) {
+      return once('text:' + wgerId, async () => {
+        const data = await getJson(API + '?format=json&language=' + ENGLISH + '&exercise=' + encodeURIComponent(wgerId));
+        const translation = data.results && data.results[0];
+        return htmlToText(translation && translation.description);
+      });
     }
 
     /**
-     * The description of one wger exercise as plain text ('' if wger has none in English).
-     * Each exercise is requested once: later calls reuse the first request's answer.
-     * A failed request is forgotten, so the next call tries again.
+     * The pictures of one wger exercise, as image URLs in wger's order ([] if it has none).
+     * Often a pair: start and end position. Uses wger's 400x400 thumbnail (about 90 KB) when there is one.
+     * Only https links are kept, so the page never loads anything odd as a picture.
      */
-    function description(wgerId) {
-      if (!cache.has(wgerId)) {
-        const request = load(wgerId);
-        cache.set(wgerId, request);
-        request.catch(() => cache.delete(wgerId));
-      }
-      return cache.get(wgerId);
+    function images(wgerId) {
+      return once('images:' + wgerId, async () => {
+        const data = await getJson(IMAGES_API + '?format=json&exercise=' + encodeURIComponent(wgerId));
+        return (data.results || [])
+          .map((picture) => (picture.thumbnails && picture.thumbnails.medium) || picture.image)
+          .filter((url) => typeof url === 'string' && url.startsWith('https://'));
+      });
     }
 
-    return { description };
+    return { description, images };
   }
 
-  const api = { createWgerClient, htmlToText, API };
+  const api = { createWgerClient, htmlToText, API, IMAGES_API };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FlexWeekWger = api;
 })(this);

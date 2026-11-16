@@ -289,7 +289,7 @@
     </div>
     </section>
 
-    <p class="footer">Prototype · fixed rules only (no AI). Exercise descriptions load from wger.de when you're online. Not medical or injury advice.</p>
+    <p class="footer">Prototype · fixed rules only (no AI). Exercise descriptions and pictures load from wger.de when you're online. Not medical or injury advice.</p>
   </div>
 
   <!-- Exercise info bubble: one shared bubble, moved under whichever ⓘ was clicked.
@@ -298,7 +298,7 @@
     <button id="exercise-info-close" class="info-close" type="button" aria-label="Close">✕</button>
     <h3 id="exercise-info-title"></h3>
     <p id="exercise-info-text" class="info-text" tabindex="0"></p>
-    <p id="exercise-info-source" class="info-source" hidden>Description: <a href="https://wger.de" target="_blank" rel="noopener">wger.de</a> (CC BY-SA)</p>
+    <p id="exercise-info-source" class="info-source" hidden><span id="exercise-info-source-what">Description</span>: <a href="https://wger.de" target="_blank" rel="noopener">wger.de</a> (CC BY-SA)</p>
     <div id="exercise-info-gif" class="info-gif"></div>
   </div>
 
@@ -438,23 +438,60 @@
     // ---- Exercise info bubble ----
     // The description comes from wger (see wger.js) when the catalog has a wgerId for the exercise.
     // Otherwise, or when wger has no text or can't be reached, it is our own catalog instructions.
-    // Looked up live, never stored in saved weeks. The GIF is still a placeholder.
+    // Pictures also come from wger when it has any for the exercise; otherwise "GIF coming soon".
+    // Looked up live, never stored in saved weeks.
     const wger = window.FlexWeekWger.createWgerClient((url, options) => fetch(url, options));
 
     function catalogText(entry) {
       return entry ? entry.instructions.join('\n\n') : 'No description for this exercise yet.';
     }
 
-    // Puts a description in the bubble. fromWger shows the credit line that wger's license asks for.
-    function showInfoText(text, fromWger) {
+    // What the open bubble shows from wger, for the credit line that wger's license asks for.
+    const fromWger = { text: false, pictures: false };
+    function showCredit() {
+      const what = [];
+      if (fromWger.text) what.push('Description');
+      if (fromWger.pictures) what.push(what.length ? 'pictures' : 'Pictures');
+      $('exercise-info-source').hidden = !what.length;
+      $('exercise-info-source-what').textContent = what.join(' and ');
+    }
+
+    function showInfoText(text, isFromWger) {
       $('exercise-info-text').textContent = text;
-      $('exercise-info-source').hidden = !fromWger;
+      fromWger.text = isFromWger;
+      showCredit();
+    }
+
+    // Shows wger's pictures. With two or more (often start and end position) it flips between
+    // them every 1.2 seconds, so the movement reads like a GIF.
+    let slideTimer = null;
+    function stopSlides() {
+      if (slideTimer) clearInterval(slideTimer);
+      slideTimer = null;
+    }
+    function showPictures(urls, name) {
+      stopSlides();
+      fromWger.pictures = urls.length > 0;
+      showCredit();
+      const box = $('exercise-info-gif');
+      if (!urls.length) { box.textContent = 'GIF coming soon'; return; }
+      urls.slice(1).forEach((url) => { document.createElement('img').src = url; }); // load the others now, so the flip is smooth
+      const img = document.createElement('img');
+      let shown = 0;
+      const show = () => {
+        img.src = urls[shown];
+        img.alt = name + ' (picture ' + (shown + 1) + ' of ' + urls.length + ')';
+      };
+      show();
+      box.replaceChildren(img);
+      if (urls.length > 1) slideTimer = setInterval(() => { shown = (shown + 1) % urls.length; show(); }, 1200);
     }
 
     let infoButton = null; // the ⓘ whose bubble is open, or null
 
     function closeInfo(returnFocus) {
       if (!infoButton) return;
+      stopSlides();
       $('exercise-info').hidden = true;
       infoButton.setAttribute('aria-expanded', 'false');
       if (returnFocus) infoButton.focus();
@@ -468,24 +505,21 @@
       closeInfo(false);
       const entry = window.FlexWeekCatalog.BY_ID[exercise.id];
       $('exercise-info-title').textContent = exercise.name;
+      fromWger.pictures = false;
       if (entry && entry.wgerId) {
         showInfoText('Loading…', false);
+        $('exercise-info-gif').textContent = 'Loading…';
         // wger answers later. By then the bubble may be closed or showing another exercise: then do nothing.
         const stillOpen = () => infoButton === button;
         wger.description(entry.wgerId).then(
           (text) => { if (stillOpen()) showInfoText(text || catalogText(entry), Boolean(text)); },
           () => { if (stillOpen()) showInfoText(catalogText(entry), false); });
+        wger.images(entry.wgerId).then(
+          (urls) => { if (stillOpen()) showPictures(urls, exercise.name); },
+          () => { if (stillOpen()) showPictures([], exercise.name); });
       } else {
         showInfoText(catalogText(entry), false);
-      }
-      const gif = $('exercise-info-gif');
-      if (entry && entry.gif) {
-        const img = document.createElement('img');
-        img.src = entry.gif;
-        img.alt = exercise.name + ' demonstration';
-        gif.replaceChildren(img);
-      } else {
-        gif.textContent = 'GIF coming soon';
+        $('exercise-info-gif').textContent = 'GIF coming soon';
       }
       // Place the bubble just under the button, kept 16px inside the screen edges.
       const bubble = $('exercise-info');
