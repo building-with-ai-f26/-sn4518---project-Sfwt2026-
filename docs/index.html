@@ -5,9 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FlexWeek · Building with AI (Fall 2026)</title>
 
-  <!-- Week 1: create your PostHog account only.
-       Build 2: paste your project's current PostHog web snippet here,
-       then install analytics in the local app and verify events. -->
+  <!-- PostHog -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}p||((p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",p.onerror=function(){p=null},(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r));var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="Eh Rh Ph Oh Lh qh init yd bd dd fd Sd wc md xd ad Ed Ad Rd Pd Od Fd capture getExtension gr pd gd calculateEventProperties Ld register register_once register_for_session unregister unregister_for_session zd hd jd getFeatureFlag getFeatureFlagPayload getFeatureFlagResult getAllFeatureFlags isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys onActiveMatchingSurveysChanged renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Hd identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset Ud shutdown setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty qd Td createPersonProfile setInternalOrTestUser Bd Uh zh opt_in_capturing opt_out_capturing Hh has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing $d debug kc Ls getPageViewId captureTraceFeedback captureTraceMetric rd".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_yWH2DYtbqwrPNAGoqva7mXUJ3eoKu2SEwmUWxZqP9yeE', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2026-05-30',
+        person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+    })
+  </script>
 
   <style>
     :root {
@@ -157,7 +163,7 @@
     <section id="live-demo">
       <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
       <p>
-        <strong>Current Status:</strong> Build 1: local prototype (<code>prototype/index.html</code>, fixed rules, no AI calls)<br />
+        <strong>Current Status:</strong> Build 2: local app (<code>prototype/index.html</code>). The plan uses fixed rules (no AI); exercise descriptions come from a live call to the free wger exercise API.<br />
         <strong>Demo:</strong> Local prototype with the example week: Upper / Lower / Full Body plan, only 2 training days, soccer Thursday, home equipment.
       </p>
       <img src="prototype.png" alt="FlexWeek prototype: base plan and constraints on the left, the adjusted Mon–Sun week and a list of changes with one-line reasons on the right" style="width:100%;height:auto;border:1px solid var(--border);border-radius:8px;" />
@@ -193,7 +199,7 @@
       <div class="grid-2">
         <div class="stat-box">
           <div class="stat-label">Cumulative Build Spend</div>
-          <div class="stat-value">[Record actual spend]</div>
+          <div class="stat-value">$0.00</div>
         </div>
         <div class="stat-box">
           <div class="stat-label">Est. Cost Per User Run</div>
@@ -243,9 +249,10 @@
       <div class="log-entry">
         <h3>Build 2 · Smallest Local Version & PostHog (Due Nov 16)</h3>
         <ul>
-          <li><strong>What shipped:</strong> [Local working slice, PostHog verified on this page and the local app, PRD v2, and local setup in AGENTS.md]</li>
-          <li><strong>What broke / changed in PRD:</strong> [Fill in]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
+          <li><strong>What shipped:</strong> The local prototype grew from a one-shot week rewriter into a small app that remembers the user. (1) Onboarding step 1: a profile screen saved on the device. (2) Onboarding step 2: a base week (which days, which session type each day) saved per profile and fed to the coach. (3) A 120-exercise catalog built from a public-domain dataset; the coach picks from it and swaps anything the user's equipment can't do. (4) Manual exercise swaps: each exercise offers alternatives with the same muscle, push/pull and compound/isolation type, filtered to the user's equipment, with sets kept. (5) A dated week: the whole week shows immediately, and the user picks any weekday to view or edit. Swaps are saved per profile in weekly snapshots, so past weeks are kept. (6) A real API call: every exercise has an ⓘ button, and opening it fetches that exercise's description from the free wger exercise database (<code>wger.de</code> REST API, no key needed) and shows it in a bubble. 78 of the 120 exercises are matched to a wger exercise; the rest, and any failed call, show the catalog's own instructions. 86 deterministic tests pass (<code>node --test tests/</code>). Local setup and the agent handoff rule are in <code>AGENTS.md</code>.</li>
+          <li><strong>PostHog:</strong> The snippet is installed in the <code>&lt;head&gt;</code> of this page and of <code>prototype/index.html</code>. Verified on the local app: after clicking around and submitting forms in <code>file://…/prototype/index.html</code>, pageview, click and form-submit events appeared under Activity in PostHog, and the session showed up in Session Replay. Not yet confirmed: the same events and a replay from this published page (it only starts reporting once this change is merged to <code>main</code> and deployed).</li>
+          <li><strong>What broke / changed in PRD:</strong> The PRD text on this page is still v1; I haven't updated it to v2 yet. What changed in practice: the old "adjust the whole week" action was removed until adjustments can be scoped to one day, and the user may now edit any selected weekday, not only today or later. Adding the PostHog snippet broke one test, which loaded the first inline script of the page; it now skips the analytics snippet. Known limits: I haven't checked the layout in a browser on a phone, and on first use the app can't reconstruct workouts from before it started saving. Next up: a "Modify remaining workouts" button for returning mid-week after skipped days.</li>
+          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours <em>(fill in)</em></li>
         </ul>
       </div>
 

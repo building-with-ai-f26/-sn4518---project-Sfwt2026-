@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FlexWeek · Prototype</title>
+  <!-- PostHog -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}p||((p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",p.onerror=function(){p=null},(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r));var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="Eh Rh Ph Oh Lh qh init yd bd dd fd Sd wc md xd ad Ed Ad Rd Pd Od Fd capture getExtension gr pd gd calculateEventProperties Ld register register_once register_for_session unregister unregister_for_session zd hd jd getFeatureFlag getFeatureFlagPayload getFeatureFlagResult getAllFeatureFlags isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys onActiveMatchingSurveysChanged renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Hd identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset Ud shutdown setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty qd Td createPersonProfile setInternalOrTestUser Bd Uh zh opt_in_capturing opt_out_capturing Hh has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing $d debug kc Ls getPageViewId captureTraceFeedback captureTraceMetric rd".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_yWH2DYtbqwrPNAGoqva7mXUJ3eoKu2SEwmUWxZqP9yeE', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2026-05-30',
+        person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+    })
+  </script>
   <style>
     :root {
       --bg: #f6f7f9;
@@ -77,9 +86,45 @@
     .chip { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 9px; border-radius: 999px; margin: 0 6px 4px 0; }
     .chip.session { background: var(--accent-soft); color: var(--accent); }
     .chip.sport { background: var(--sport-soft); color: var(--sport); }
-    .ex { margin: 2px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
-    .ex li { display: inline; }
-    .ex li + li::before { content: " · "; }
+    .day > div { min-width: 0; }
+    .exercise-table-wrap { max-width: 100%; overflow-x: auto; margin: 2px 0 10px; }
+    .ex { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+    .ex th, .ex td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .ex thead th { color: var(--muted); font-size: 12px; font-weight: 600; }
+    .ex tbody th { width: 44px; font-weight: 400; }
+    .ex td:last-child { width: 45%; }
+    .ex select { width: 100%; min-width: 120px; max-width: 100%; }
+    .ex .meta { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+    .ex .sets { display: block; color: var(--muted); font-size: 12px; }
+    /* Exercise info: an "i" in a circle beside each exercise name opens one shared bubble. */
+    .info-btn {
+      display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
+      width: 22px; height: 22px; margin-left: 6px; padding: 0; border-radius: 50%;
+      border: 1.5px solid var(--muted); background: transparent; color: var(--muted);
+      font: italic 700 13px/1 Georgia, "Times New Roman", serif;
+    }
+    .info-btn:hover, .info-btn[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .info-bubble {
+      position: absolute; z-index: 10; width: 320px; padding: 14px 16px;
+      background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+    .info-bubble::before {
+      content: ''; position: absolute; top: -7px; left: calc(var(--arrow-x, 27px) - 6px);
+      width: 12px; height: 12px; background: var(--card);
+      border-left: 1px solid var(--border); border-top: 1px solid var(--border); transform: rotate(45deg);
+    }
+    .info-bubble h3 { margin: 0 32px 6px 0; font-size: 15px; }
+    .info-bubble p { margin: 0 0 10px; font-size: 14px; color: var(--muted); }
+    /* The description: keeps its line breaks, and scrolls inside the bubble when it is long. */
+    .info-bubble .info-text { color: var(--text); white-space: pre-line; max-height: 40vh; overflow-y: auto; }
+    .info-bubble .info-source { font-size: 12px; }
+    .info-close { position: absolute; top: 8px; right: 8px; padding: 2px 8px; border: none; background: transparent; color: var(--muted); }
+    .info-gif {
+      display: flex; align-items: center; justify-content: center; min-height: 160px; overflow: hidden;
+      border-radius: 8px; background: var(--bg); color: var(--muted); font-size: 13px;
+    }
+    .info-gif img { display: block; width: 100%; height: auto; }
     .changes { margin: 0; padding: 0; list-style: none; }
     .changes li { padding: 8px 10px; border-radius: 8px; margin-bottom: 6px; background: var(--bg); font-size: 14px; }
     .changes li.warning { background: var(--warn-soft); color: var(--warn); }
@@ -87,6 +132,30 @@
     .changes li.warning .tag { color: var(--warn); }
     .error { color: #c0392b; font-weight: 600; }
     .footer { margin-top: 24px; font-size: 13px; color: var(--muted); }
+
+    /* Onboarding: profile + picker */
+    [hidden] { display: none !important; }
+    .narrow { max-width: 520px; }
+    .field { margin-bottom: 16px; }
+    .field > .label { display: block; font-weight: 600; margin-bottom: 6px; }
+    .optional { font-weight: 400; color: var(--muted); font-size: 13px; }
+    .field input[type="number"], .field input[type="text"] {
+      font: inherit; color: var(--text); background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; width: 110px;
+    }
+    .field input[type="text"] { width: 220px; }
+    .field .unit { color: var(--muted); margin: 0 10px 0 4px; }
+    .field.invalid input { border-color: #c0392b; }
+    .field-error { color: #c0392b; font-size: 13px; margin: 4px 0 0; }
+    .seg { display: inline-flex; gap: 14px; }
+    .bmi { padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); margin-bottom: 16px; font-size: 14px; }
+    .bmi strong { font-size: 16px; }
+    .profile-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .profile-bar .who { font-size: 14px; color: var(--muted); }
+    .profile-bar .who strong { color: var(--text); }
+    .picker { display: grid; gap: 8px; margin-bottom: 12px; }
+    .picker button { text-align: left; padding: 10px 12px; }
+    .notice { padding: 10px 12px; border-radius: 8px; background: var(--warn-soft); color: var(--warn); font-size: 14px; margin-bottom: 16px; }
   </style>
 </head>
 <body>
@@ -94,39 +163,123 @@
     <h1>FlexWeek</h1>
     <p class="sub">Your training plan assumes a perfect week. Tell FlexWeek this week's constraints and get an adjusted week that keeps the balance, with a reason for every change.</p>
 
+    <p id="storage-notice" class="notice" hidden>This browser won't let FlexWeek save on this device, so your profile lasts only until you close the page.</p>
+
+    <!-- SCREEN: who's training? (shown when this device has profiles but none is selected) -->
+    <section id="screen-picker" class="card narrow" hidden>
+      <h2>Who's training?</h2>
+      <div id="picker-list" class="picker"></div>
+      <button id="picker-new" type="button">+ New profile</button>
+    </section>
+
+    <!-- SCREEN: profile (first screen for a new user; also used to edit) -->
+    <section id="screen-profile" class="card narrow" hidden>
+      <h2 id="profile-title">About you</h2>
+      <p class="hint" style="margin:0 0 16px">Saved on this device only. No account, nothing sent anywhere.</p>
+      <form id="profile-form" novalidate>
+        <div class="field" data-field="nickname">
+          <label class="label" for="pf-nickname">Name <span class="optional">(optional, helps if others use this device)</span></label>
+          <input id="pf-nickname" name="nickname" type="text" maxlength="40" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <span class="label">Units</span>
+          <span class="seg">
+            <label><input type="radio" name="units" value="metric" checked /> cm / kg</label>
+            <label><input type="radio" name="units" value="imperial" /> ft / lb</label>
+          </span>
+        </div>
+
+        <div class="field" data-field="age">
+          <label class="label" for="pf-age">Age</label>
+          <input id="pf-age" name="age" type="number" min="13" max="100" step="1" inputmode="numeric" /><span class="unit">years</span>
+        </div>
+
+        <div class="field" data-field="height">
+          <span class="label">Height</span>
+          <span data-units="metric"><input name="heightCm" type="number" step="0.1" inputmode="decimal" aria-label="Height in centimetres" /><span class="unit">cm</span></span>
+          <span data-units="imperial" hidden><input name="heightFt" type="number" step="1" inputmode="numeric" aria-label="Height, feet" /><span class="unit">ft</span><input name="heightIn" type="number" step="0.5" min="0" max="11.5" inputmode="decimal" aria-label="Height, inches" /><span class="unit">in</span></span>
+        </div>
+
+        <div class="field" data-field="weight">
+          <span class="label">Weight</span>
+          <span data-units="metric"><input name="weightKg" type="number" step="0.1" inputmode="decimal" aria-label="Weight in kilograms" /><span class="unit">kg</span></span>
+          <span data-units="imperial" hidden><input name="weightLb" type="number" step="0.1" inputmode="decimal" aria-label="Weight in pounds" /><span class="unit">lb</span></span>
+        </div>
+
+        <div id="bmi" class="bmi">BMI: <strong>–</strong> <span class="optional">(calculated from height and weight)</span></div>
+
+        <div class="field" data-field="bodyFatPct">
+          <label class="label" for="pf-bf">Body fat <span class="optional">(optional)</span></label>
+          <input id="pf-bf" name="bodyFatPct" type="number" step="0.1" inputmode="decimal" /><span class="unit">%</span>
+        </div>
+
+        <div class="field" data-field="goal">
+          <span class="label">Main goal</span>
+          <div id="pf-goals"></div>
+        </div>
+
+        <div class="actions">
+          <button class="primary" type="submit">Save profile</button>
+          <button id="profile-cancel" type="button" hidden>Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- SCREEN: base week (onboarding step 2; also used to edit) -->
+    <section id="screen-week" class="card narrow" hidden>
+      <h2 id="week-title">Your usual week</h2>
+      <p class="hint" style="margin:0 0 16px">The routine you follow in a normal week. FlexWeek adjusts it when a week isn't normal.</p>
+      <form id="week-form" novalidate>
+        <div class="field">
+          <label class="label" for="wk-count">Training days per week</label>
+          <select id="wk-count"></select>
+        </div>
+        <div class="field">
+          <span class="label">Sessions</span>
+          <div id="wk-rows"></div>
+        </div>
+        <div id="wk-errors"></div>
+        <div class="actions">
+          <button class="primary" type="submit">Save base week</button>
+          <button id="week-cancel" type="button" hidden>Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- SCREEN: weekly planner (the Build 1 prototype) -->
+    <section id="screen-main" hidden>
+    <div class="profile-bar">
+      <div class="who" id="who"></div>
+      <div class="actions" style="margin:0">
+        <button id="edit-week-bar" type="button">Edit base week</button>
+        <button id="edit-profile" type="button">Edit profile</button>
+        <button id="switch-profile" type="button">Switch person</button>
+      </div>
+    </div>
+
     <div class="layout">
       <!-- INPUTS -->
       <div>
         <div class="card">
           <h2>1 · Base weekly plan</h2>
           <div id="plan"></div>
-          <button id="add-session" type="button">+ Add session</button>
+          <button id="edit-week" type="button">Edit base week</button>
         </div>
 
-        <div class="card">
-          <h2>2 · This week</h2>
-          <label class="row">Days I can train: <input id="days" type="number" min="0" max="7" value="3" /></label>
-          <h2 style="margin-top:14px">Other activities</h2>
-          <div id="acts"></div>
-          <button id="add-act" type="button">+ Add activity</button>
-        </div>
-
-        <div class="card">
-          <h2>3 · Equipment</h2>
-          <div id="equip"></div>
-        </div>
-
-        <div class="actions">
-          <button id="run" class="primary" type="button">Adjust my week</button>
-          <button id="example" type="button">Load example</button>
-        </div>
+<p class="hint">Saving a new base week also updates this week. Days whose session didn't change keep their exercise swaps.</p>
       </div>
 
       <!-- OUTPUT -->
       <div>
         <div class="card">
-          <h2>Adjusted week</h2>
-          <div id="week"><p class="empty">Fill in your plan and press <strong>Adjust my week</strong>, or try <strong>Load example</strong>.</p></div>
+          <h2>Your week</h2>
+          <label for="workout-day">Current workout day</label>
+          <select id="workout-day"></select>
+          <p id="week-context" class="hint"></p>
+          <p class="hint">Select any weekday to follow its routine and switch its exercises, regardless of today's date. Changes stay with that day's workout.</p>
+          <p id="workout-storage-error" class="error" role="alert" hidden></p>
+          <div id="week"><p class="empty">Your saved workouts will appear here.</p></div>
         </div>
         <div class="card">
           <h2>What changed &amp; why</h2>
@@ -134,19 +287,37 @@
         </div>
       </div>
     </div>
+    </section>
 
-    <p class="footer">Prototype · fixed rules only (no AI, no network). Everything runs in this page. Not medical or injury advice.</p>
+    <p class="footer">Prototype · fixed rules only (no AI). Exercise descriptions and pictures load from wger.de when you're online. Not medical or injury advice.</p>
   </div>
 
+  <!-- Exercise info bubble: one shared bubble, moved under whichever ⓘ was clicked.
+       It lives outside the exercise tables so their scroll box can't cut it off. -->
+  <div id="exercise-info" class="info-bubble" role="dialog" aria-labelledby="exercise-info-title" hidden>
+    <button id="exercise-info-close" class="info-close" type="button" aria-label="Close">✕</button>
+    <h3 id="exercise-info-title"></h3>
+    <p id="exercise-info-text" class="info-text" tabindex="0"></p>
+    <p id="exercise-info-source" class="info-source" hidden><span id="exercise-info-source-what">Description</span>: <a href="https://wger.de" target="_blank" rel="noopener">wger.de</a> (CC BY-SA)</p>
+    <div id="exercise-info-gif" class="info-gif"></div>
+  </div>
+
+  <script src="exercises.js"></script>
   <script src="coach.js"></script>
+  <script src="workoutweek.js"></script>
+  <script src="wger.js"></script>
   <script>
-    const { adjustWeek, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT } = window.FlexWeek;
+    const { adjustWeek, exerciseAlternatives, swapExercise, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT } = window.FlexWeek;
+    let currentResult = null;
+    let resultEquipment = null;
+    const WW = window.FlexWeekWorkoutWeek;
+    let workoutStore = null;
+    let workoutProfile = null;
+    let workoutRecord = null;
+    let selectedDay = WW.calendar().day;
 
     const state = {
       plan: [{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }],
-      days: 3,
-      acts: [],
-      equipment: 'full',
     };
 
     const $ = (id) => document.getElementById(id);
@@ -156,44 +327,43 @@
       DAYS.map((d, i) => `<option value="${i}"${i === Number(selected) ? ' selected' : ''}>${d}</option>`).join('');
 
     function renderInputs() {
+      // Read-only: the base week is set on its own screen ("Edit base week").
       $('plan').innerHTML = state.plan.length
-        ? state.plan.map((s, i) => `
-            <div class="row">
-              <select data-list="plan" data-i="${i}" data-k="type" aria-label="Session type">${options(SESSION_TYPES, s.type)}</select>
-              <select data-list="plan" data-i="${i}" data-k="day" aria-label="Usual day">${dayOptions(s.day)}</select>
-              <button class="icon-btn" data-remove="plan" data-i="${i}" type="button" aria-label="Remove session">✕</button>
-            </div>`).join('')
+        ? '<div class="week" style="margin-bottom:12px">' + state.plan.map((s) => `
+            <div class="day"><div class="day-name">${DAYS[s.day]}</div><div><span class="chip session">${SESSION_TYPES[s.type].name}</span></div></div>`).join('') + '</div>'
         : '<p class="empty">No sessions yet.</p>';
 
-      $('acts').innerHTML = state.acts.length
-        ? state.acts.map((a, i) => `
-            <div class="row">
-              <select data-list="acts" data-i="${i}" data-k="type" aria-label="Activity">${options(ACTIVITIES, a.type)}</select>
-              <select data-list="acts" data-i="${i}" data-k="day" aria-label="Day">${dayOptions(a.day)}</select>
-              <button class="icon-btn" data-remove="acts" data-i="${i}" type="button" aria-label="Remove activity">✕</button>
-            </div>`).join('')
-        : '<p class="empty">None this week.</p>';
 
-      $('equip').innerHTML = Object.entries(EQUIPMENT).map(([k, v]) => `
-        <label class="radio"><input type="radio" name="equip" value="${k}"${k === state.equipment ? ' checked' : ''} /> <span>${v}</span></label>`).join('');
-
-      $('days').value = state.days;
     }
 
     function renderResult(r) {
+      closeInfo(false);
       if (r.error) {
         $('week').innerHTML = `<p class="error">${r.error}</p>`;
         $('changes').innerHTML = '';
         return;
       }
-      $('week').innerHTML = '<div class="week">' + r.week.map((w) => {
+      $('week').innerHTML = '<div class="week">' + r.week.map((w, dayIndex) => {
         const parts = [];
+        const editable = WW.canEdit(workoutRecord.week, selectedDay, dayIndex);
+        if (dayIndex === selectedDay) parts.push('<p class="hint">Selected workout</p>');
+        let exerciseNumber = 0;
         w.activities.forEach((a) => parts.push(`<span class="chip sport">${a}</span>`));
-        w.sessions.forEach((s) => {
+        w.sessions.forEach((s, sessionIndex) => {
           parts.push(`<span class="chip session">${s.label}</span>`);
-          parts.push('<ul class="ex">' + s.exercises.map((e) => `<li>${e.name} ${e.sets}×</li>`).join('') + '</ul>');
+          parts.push(`<div class="exercise-table-wrap"><table class="ex" aria-label="${w.day} ${s.label} exercises"><thead><tr><th scope="col">Exercise #</th><th scope="col">Exercise name</th><th scope="col">Switch to</th></tr></thead><tbody>` + s.exercises.map((e, exerciseIndex) => {
+            const choices = exerciseAlternatives(e.id, resultEquipment);
+            const control = !editable ? '<small>Read-only</small>' : choices.length
+              ? `<select data-swap-day="${dayIndex}" data-swap-session="${sessionIndex}" data-swap-exercise="${exerciseIndex}" aria-label="Swap ${e.name}">
+                  <option value="">Swap exercise…</option>
+                  ${choices.map((a) => `<option value="${a.id}">${a.name}</option>`).join('')}
+                </select>`
+              : '<small>No alternatives available</small>';
+            const info = `<button type="button" class="info-btn" data-info="${dayIndex}-${sessionIndex}-${exerciseIndex}" aria-label="About ${e.name}" aria-expanded="false" aria-controls="exercise-info">i</button>`;
+            return `<tr><th scope="row">${++exerciseNumber}</th><td>${e.name}${info}<span class="sets">${e.sets} sets</span>${e.swapReason ? `<p class="meta">${e.swapReason}</p>` : ''}</td><td>${control}</td></tr>`;
+          }).join('') + '</tbody></table></div>');
         });
-        if (!parts.length) parts.push('<span class="rest">Rest</span>');
+        if (!w.sessions.length && !w.activities.length) parts.push('<span class="rest">Rest</span>');
         return `<div class="day"><div class="day-name">${w.day}</div><div>${parts.join('')}</div></div>`;
       }).join('') + '</div>';
 
@@ -204,46 +374,412 @@
       $('changes').innerHTML = '<ul class="changes">' + items.concat(notes).join('') + '</ul>';
     }
 
-    function run() {
-      renderResult(adjustWeek({ basePlan: state.plan, daysAvailable: state.days, activities: state.acts, equipment: state.equipment }));
+    function saveWorkout() {
+      try {
+        workoutStore.save(workoutProfile, workoutRecord);
+        $('workout-storage-error').hidden = true;
+      } catch (_) {
+        $('workout-storage-error').textContent = 'Your latest workout changes could not be saved. Keep this page open to retain them.';
+        $('workout-storage-error').hidden = false;
+      }
     }
 
-    document.addEventListener('change', (e) => {
-      const t = e.target;
-      if (t.dataset.list) {
-        const v = t.dataset.k === 'day' ? Number(t.value) : t.value;
-        state[t.dataset.list][Number(t.dataset.i)][t.dataset.k] = v;
-      } else if (t.name === 'equip') {
-        state.equipment = t.value;
-      } else if (t.id === 'days') {
-        state.days = Number(t.value);
+    function openWorkout() {
+      const today = WW.calendar();
+      selectedDay = today.day;
+      workoutRecord = workoutStore.load(workoutProfile, today.week);
+      const fresh = adjustWeek({ basePlan: state.plan, daysAvailable: state.plan.length, activities: [], equipment: 'full' });
+      if (!workoutRecord) {
+        workoutRecord = { version: 1, week: today.week, equipment: 'full', result: fresh };
+      } else {
+        // An edited base week updates this week too. Days whose sessions are unchanged keep their swaps.
+        const types = (d) => d.sessions.map((s) => s.type).join(',');
+        const old = workoutRecord.result;
+        if (old.week.some((d, i) => types(d) !== types(fresh.week[i]))) {
+          fresh.week = fresh.week.map((d, i) => (types(d) === types(old.week[i]) ? old.week[i] : d));
+          if (fresh.week.some((d) => d.sessions.some((s) => s.exercises.some((e) => e.swapReason)))) {
+            fresh.notes = fresh.notes.filter((n) => n !== 'Your base plan already fits this week. No changes needed.');
+          }
+          workoutRecord.result = fresh;
+        }
       }
-    });
-    document.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-remove]');
-      if (!t) return;
-      state[t.dataset.remove].splice(Number(t.dataset.i), 1);
-      renderInputs();
-    });
-    $('days').addEventListener('input', (e) => { state.days = Number(e.target.value); });
-    $('add-session').addEventListener('click', () => {
-      const used = state.plan.map((s) => s.day);
-      const free = DAYS.findIndex((_, i) => !used.includes(i));
-      state.plan.push({ type: 'full', day: free < 0 ? 0 : free });
-      renderInputs();
-    });
-    $('add-act').addEventListener('click', () => { state.acts.push({ type: 'soccer', day: 3 }); renderInputs(); });
-    $('run').addEventListener('click', run);
-    $('example').addEventListener('click', () => {
-      state.plan = [{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }];
-      state.days = 2;
-      state.acts = [{ type: 'soccer', day: 3 }];
-      state.equipment = 'home';
-      renderInputs();
-      run();
+      currentResult = workoutRecord.result;
+      resultEquipment = workoutRecord.equipment;
+      saveWorkout();
+      $('workout-day').innerHTML = dayOptions(selectedDay);
+      $('week-context').textContent = 'Week of ' + today.week + ' · Saved on this device for this person.';
+      renderResult(currentResult);
+    }
+
+    $('workout-day').addEventListener('change', (event) => {
+      if (!workoutRecord) return;
+      if (workoutRecord.week !== WW.calendar().week) { openWorkout(); return; }
+      selectedDay = Number(event.target.value);
+      renderResult(currentResult);
     });
 
+    $('week').addEventListener('change', (event) => {
+      const t = event.target;
+      if (t.dataset.swapDay === undefined || !t.value || !currentResult) return;
+      if (workoutRecord.week !== WW.calendar().week) { openWorkout(); return; }
+      const day = Number(t.dataset.swapDay);
+      if (!WW.canEdit(workoutRecord.week, selectedDay, day)) { renderResult(currentResult); return; }
+      const session = currentResult.week[day]?.sessions[Number(t.dataset.swapSession)];
+      if (!session) return;
+      const index = Number(t.dataset.swapExercise);
+      const replacement = swapExercise(session.exercises[index], t.value, resultEquipment);
+      if (!replacement) return;
+      session.exercises[index] = replacement;
+      currentResult.notes = currentResult.notes.filter((n) => n !== 'Your base plan already fits this week. No changes needed.');
+      saveWorkout();
+      renderResult(currentResult);
+    });
+
+    // ---- Exercise info bubble ----
+    // The description comes from wger (see wger.js) when the catalog has a wgerId for the exercise.
+    // Otherwise, or when wger has no text or can't be reached, it is our own catalog instructions.
+    // Pictures also come from wger when it has any for the exercise; otherwise "GIF coming soon".
+    // Looked up live, never stored in saved weeks.
+    const wger = window.FlexWeekWger.createWgerClient((url, options) => fetch(url, options));
+
+    function catalogText(entry) {
+      return entry ? entry.instructions.join('\n\n') : 'No description for this exercise yet.';
+    }
+
+    // What the open bubble shows from wger, for the credit line that wger's license asks for.
+    const fromWger = { text: false, pictures: false };
+    function showCredit() {
+      const what = [];
+      if (fromWger.text) what.push('Description');
+      if (fromWger.pictures) what.push(what.length ? 'pictures' : 'Pictures');
+      $('exercise-info-source').hidden = !what.length;
+      $('exercise-info-source-what').textContent = what.join(' and ');
+    }
+
+    function showInfoText(text, isFromWger) {
+      $('exercise-info-text').textContent = text;
+      fromWger.text = isFromWger;
+      showCredit();
+    }
+
+    // Shows wger's pictures. With two or more (often start and end position) it flips between
+    // them every 1.2 seconds, so the movement reads like a GIF.
+    let slideTimer = null;
+    function stopSlides() {
+      if (slideTimer) clearInterval(slideTimer);
+      slideTimer = null;
+    }
+    function showPictures(urls, name) {
+      stopSlides();
+      fromWger.pictures = urls.length > 0;
+      showCredit();
+      const box = $('exercise-info-gif');
+      if (!urls.length) { box.textContent = 'GIF coming soon'; return; }
+      urls.slice(1).forEach((url) => { document.createElement('img').src = url; }); // load the others now, so the flip is smooth
+      const img = document.createElement('img');
+      let shown = 0;
+      const show = () => {
+        img.src = urls[shown];
+        img.alt = name + ' (picture ' + (shown + 1) + ' of ' + urls.length + ')';
+      };
+      show();
+      box.replaceChildren(img);
+      if (urls.length > 1) slideTimer = setInterval(() => { shown = (shown + 1) % urls.length; show(); }, 1200);
+    }
+
+    let infoButton = null; // the ⓘ whose bubble is open, or null
+
+    function closeInfo(returnFocus) {
+      if (!infoButton) return;
+      stopSlides();
+      $('exercise-info').hidden = true;
+      infoButton.setAttribute('aria-expanded', 'false');
+      if (returnFocus) infoButton.focus();
+      infoButton = null;
+    }
+
+    function openInfo(button) {
+      const [d, s, x] = button.dataset.info.split('-').map(Number);
+      const exercise = currentResult && currentResult.week[d]?.sessions[s]?.exercises[x];
+      if (!exercise) return;
+      closeInfo(false);
+      const entry = window.FlexWeekCatalog.BY_ID[exercise.id];
+      $('exercise-info-title').textContent = exercise.name;
+      fromWger.pictures = false;
+      if (entry && entry.wgerId) {
+        showInfoText('Loading…', false);
+        $('exercise-info-gif').textContent = 'Loading…';
+        // wger answers later. By then the bubble may be closed or showing another exercise: then do nothing.
+        const stillOpen = () => infoButton === button;
+        wger.description(entry.wgerId).then(
+          (text) => { if (stillOpen()) showInfoText(text || catalogText(entry), Boolean(text)); },
+          () => { if (stillOpen()) showInfoText(catalogText(entry), false); });
+        wger.images(entry.wgerId).then(
+          (urls) => { if (stillOpen()) showPictures(urls, exercise.name); },
+          () => { if (stillOpen()) showPictures([], exercise.name); });
+      } else {
+        showInfoText(catalogText(entry), false);
+        $('exercise-info-gif').textContent = 'GIF coming soon';
+      }
+      // Place the bubble just under the button, kept 16px inside the screen edges.
+      const bubble = $('exercise-info');
+      const page = document.documentElement.clientWidth;
+      const width = Math.min(320, page - 32);
+      const r = button.getBoundingClientRect();
+      const left = Math.max(16, Math.min(r.left - 16, page - width - 16));
+      const arrow = Math.max(14, Math.min(width - 14, r.left + r.width / 2 - left));
+      bubble.style.width = width + 'px';
+      bubble.style.left = left + window.scrollX + 'px';
+      bubble.style.top = r.bottom + window.scrollY + 8 + 'px';
+      bubble.style.setProperty('--arrow-x', arrow + 'px');
+      bubble.hidden = false;
+      button.setAttribute('aria-expanded', 'true');
+      infoButton = button;
+      $('exercise-info-close').focus();
+    }
+
+    $('week').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-info]');
+      if (!button) return;
+      if (button === infoButton) closeInfo(false);
+      else openInfo(button);
+    });
+    $('exercise-info-close').addEventListener('click', () => closeInfo(true));
+    document.addEventListener('click', (event) => {
+      if (infoButton && !$('exercise-info').contains(event.target) && !infoButton.contains(event.target)) closeInfo(false);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeInfo(true);
+    });
+    window.addEventListener('resize', () => closeInfo(false));
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && workoutStore && workoutProfile) {
+        if (workoutRecord.week !== WW.calendar().week) openWorkout();
+        else renderResult(currentResult);
+      }
+    });
+
+    function setBasePlan(week, profileId, storage) {
+      state.plan = week.map((s) => ({ type: s.type, day: s.day }));
+      workoutProfile = profileId;
+      workoutStore = WW.createWorkoutStore(storage);
+      renderInputs();
+      openWorkout();
+    }
+
     renderInputs();
+  </script>
+
+  <script src="profile.js"></script>
+  <script src="baseweek.js"></script>
+  <script>
+    // ---- Onboarding: step 1 profile, step 2 base week (both saved on this device only) ----
+    (function () {
+      const { GOALS, bmi, validateProfile, createStore } = window.FlexWeekProfile;
+      const BW = window.FlexWeekBaseWeek;
+      const $ = (id) => document.getElementById(id);
+      const form = $('profile-form');
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+      // localStorage can be blocked (private mode, strict settings). Fall back to memory so the app still works.
+      let storage;
+      try {
+        storage = window.localStorage;
+        storage.setItem('flexweek:test', '1');
+        storage.removeItem('flexweek:test');
+      } catch (e) {
+        const mem = {};
+        storage = { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; } };
+        $('storage-notice').hidden = false;
+      }
+      const store = createStore(storage);
+      const weekStore = BW.createWeekStore(storage);
+
+      let editingId = null; // null = creating a new profile
+
+      $('pf-goals').innerHTML = Object.entries(GOALS).map(([k, v]) =>
+        `<label class="radio"><input type="radio" name="goal" value="${k}" /> <span>${v}</span></label>`).join('');
+
+      function show(screen) {
+        ['picker', 'profile', 'week', 'main'].forEach((s) => { $('screen-' + s).hidden = s !== screen; });
+      }
+
+      // Form fields as a plain object. `goal` is missing when no radio is checked; validateProfile reports it.
+      const readForm = () => Object.fromEntries(new FormData(form).entries());
+
+      function setUnits(units) {
+        form.querySelectorAll('[data-units]').forEach((el) => { el.hidden = el.dataset.units !== units; });
+      }
+
+      // Show BMI as soon as height and weight are valid, even if other fields are still empty.
+      function updateBmi() {
+        const m = validateProfile(readForm()).measured;
+        const value = bmi(m.heightCm, m.weightKg);
+        $('bmi').querySelector('strong').textContent = value === null ? '–' : value.toFixed(1);
+      }
+
+      function showErrors(errors) {
+        form.querySelectorAll('.field').forEach((f) => {
+          f.classList.remove('invalid');
+          const old = f.querySelector('.field-error');
+          if (old) old.remove();
+          const msg = errors[f.dataset.field];
+          if (msg) {
+            f.classList.add('invalid');
+            f.insertAdjacentHTML('beforeend', `<p class="field-error" role="alert">${esc(msg)}</p>`);
+          }
+        });
+      }
+
+      function fillForm(p) {
+        form.reset();
+        showErrors({});
+        const units = p ? p.units : 'metric';
+        form.units.value = units;
+        setUnits(units);
+        if (p) {
+          form.nickname.value = p.nickname || '';
+          form.age.value = p.age;
+          form.heightCm.value = Math.round(p.heightCm * 10) / 10;
+          const totalIn = p.heightCm / 2.54;
+          let ft = Math.floor(totalIn / 12);
+          let inch = Math.round((totalIn - ft * 12) * 2) / 2;
+          if (inch >= 12) { ft += 1; inch = 0; }
+          form.heightFt.value = ft;
+          form.heightIn.value = inch;
+          form.weightKg.value = Math.round(p.weightKg * 10) / 10;
+          form.weightLb.value = Math.round((p.weightKg / 0.45359237) * 10) / 10;
+          form.bodyFatPct.value = p.bodyFatPct === null ? '' : p.bodyFatPct;
+          const g = form.querySelector(`input[name="goal"][value="${p.goal}"]`);
+          if (g) g.checked = true;
+        }
+        updateBmi();
+      }
+
+      function openProfile(id) {
+        editingId = id || null;
+        const rec = id ? store.loadProfile(id) : null;
+        $('profile-title').textContent = rec ? 'Edit profile' : 'About you';
+        $('profile-cancel').hidden = !rec && store.listProfiles().length === 0;
+        fillForm(rec ? rec.profile : null);
+        show('profile');
+      }
+
+      // ---- Step 2: base week ----
+      let weekRows = []; // [{ type, day }] being edited
+
+      $('wk-count').innerHTML = [1, 2, 3, 4, 5, 6, 7].map((n) => `<option value="${n}">${n}</option>`).join('');
+
+      function renderWeekRows() {
+        $('wk-count').value = String(weekRows.length);
+        const opts = (obj, sel) => Object.entries(obj).map(([k, v]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${v}</option>`).join('');
+        const dayOpts = (sel) => BW.DAYS.map((d, i) => `<option value="${i}"${i === sel ? ' selected' : ''}>${d}</option>`).join('');
+        $('wk-rows').innerHTML = weekRows.map((s, i) => `
+          <div class="row">
+            <select data-wk="${i}" data-k="day" aria-label="Day ${i + 1} weekday">${dayOpts(s.day)}</select>
+            <select data-wk="${i}" data-k="type" aria-label="Day ${i + 1} session type">${opts(BW.SESSION_TYPES, s.type)}</select>
+          </div>`).join('');
+        $('wk-errors').innerHTML = '';
+      }
+
+      function openWeek(id) {
+        const saved = weekStore.loadWeek(id);
+        $('week-title').textContent = saved ? 'Edit base week' : 'Your usual week';
+        $('week-cancel').hidden = !saved;
+        weekRows = saved || BW.defaultWeek(3);
+        renderWeekRows();
+        show('week');
+      }
+
+      // Changing the number of days keeps the rows already set and fills new ones from the default.
+      $('wk-count').addEventListener('change', (e) => {
+        const n = Number(e.target.value);
+        if (n <= weekRows.length) {
+          weekRows = weekRows.slice(0, n);
+        } else {
+          const used = weekRows.map((s) => s.day);
+          const extra = BW.defaultWeek(n).filter((s) => !used.includes(s.day));
+          for (let d = 0; extra.length < n - weekRows.length && d < 7; d++) {
+            if (!used.includes(d) && !extra.some((s) => s.day === d)) extra.push({ type: 'full', day: d });
+          }
+          weekRows = weekRows.concat(extra.slice(0, n - weekRows.length));
+        }
+        renderWeekRows();
+      });
+      $('wk-rows').addEventListener('change', (e) => {
+        const t = e.target;
+        if (!t.dataset.wk) return;
+        weekRows[Number(t.dataset.wk)][t.dataset.k] = t.dataset.k === 'day' ? Number(t.value) : t.value;
+      });
+      $('week-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = store.getCurrentId();
+        const r = weekStore.saveWeek(id, weekRows);
+        if (!r.ok) {
+          $('wk-errors').innerHTML = r.errors.map((m) => `<p class="field-error" role="alert">${esc(m)}</p>`).join('');
+          return;
+        }
+        openMain(id);
+      });
+      $('week-cancel').addEventListener('click', () => openMain(store.getCurrentId()));
+      $('edit-week').addEventListener('click', () => openWeek(store.getCurrentId()));
+      $('edit-week-bar').addEventListener('click', () => openWeek(store.getCurrentId()));
+
+      // Planner. A person without a base week yet (new, or saved before step 2 existed) sets one up first.
+      function openMain(id) {
+        store.setCurrentId(id);
+        const week = weekStore.loadWeek(id);
+        if (!week) { openWeek(id); return; }
+        setBasePlan(week, id, storage);
+        const p = store.loadProfile(id).profile;
+        const value = bmi(p.heightCm, p.weightKg);
+        $('who').innerHTML = `<strong>${esc(p.nickname)}</strong> · ${GOALS[p.goal]} · BMI ${value.toFixed(1)}`;
+        show('main');
+      }
+
+      function openPicker() {
+        store.setCurrentId(null);
+        $('picker-list').innerHTML = store.listProfiles().map((p) =>
+          `<button type="button" data-pick="${esc(p.id)}">${esc(p.nickname)}</button>`).join('');
+        show('picker');
+      }
+
+      form.addEventListener('change', (e) => {
+        if (e.target.name === 'units') setUnits(e.target.value);
+        updateBmi();
+      });
+      form.addEventListener('input', updateBmi);
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const r = validateProfile(readForm());
+        showErrors(r.errors);
+        if (!r.ok) {
+          const first = form.querySelector('.field.invalid input');
+          if (first) first.focus();
+          return;
+        }
+        const rec = store.saveProfile(r.profile, editingId);
+        openMain(rec.id);
+      });
+      $('profile-cancel').addEventListener('click', () => {
+        if (editingId) openMain(editingId);
+        else openPicker();
+      });
+      $('edit-profile').addEventListener('click', () => openProfile(store.getCurrentId()));
+      $('switch-profile').addEventListener('click', openPicker);
+      $('picker-new').addEventListener('click', () => openProfile(null));
+      $('picker-list').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-pick]');
+        if (b) openMain(b.dataset.pick);
+      });
+
+      // Start: last used profile → planner; other profiles → picker; none → profile form.
+      const current = store.getCurrentId();
+      if (current) openMain(current);
+      else if (store.listProfiles().length) openPicker();
+      else openProfile(null);
+    })();
   </script>
 </body>
 </html>

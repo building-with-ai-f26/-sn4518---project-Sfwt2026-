@@ -1,0 +1,172 @@
+# FlexWeek exercise catalog: which wger exercise each of ours matches.
+# wger (https://wger.de) is the free exercise database the app fetches descriptions from.
+# One line per catalog exercise, four columns separated by " | ":
+#
+#   catalog id | wger id | wger name | note
+#
+# wger id = the number of the matching wger exercise, or "-" for no match.
+#   The app then shows our own catalog instructions for that exercise.
+# wger name and note are for people reading this file; the build ignores them.
+#
+# A match is only set when both are true:
+#   1. Same exercise: same movement, same equipment, same variation.
+#   2. wger's English text explains the movement in at least about 100 characters
+#      (not empty, not a one-line note or link, not only a list of benefits or muscles).
+# Reviewed by hand on 2026-11-16 against wger's 973 English exercises.
+#
+# To check or change a line:  node scripts/wger-lookup.js find <text>   /   node scripts/wger-lookup.js show <wger id>
+# After editing, rebuild the catalog:  node scripts/build-catalog.js
+
+# --- chest
+Barbell_Bench_Press_-_Medium_Grip | 73 | Bench Press
+Barbell_Incline_Bench_Press_-_Medium_Grip | - | | wger 538 "Incline Bench Press - Barbell" is the same lift, but its text is only "To do slowly, tempo is 4010"
+Dumbbell_Bench_Press | 75 | Benchpress Dumbbells
+Incline_Dumbbell_Press | 537 | Incline Bench Press - Dumbbell
+Dumbbell_Flyes | 238 | Fly With Dumbbells
+Machine_Bench_Press | 129 | Chest Press
+Leverage_Incline_Chest_Press | - | | closest: wger 1773 "Legend Incline Bench Press" (written for one brand's machine)
+Butterfly | 135 | Butterfly
+Cable_Crossover | 323 | Cable Cross-over
+Pushups | 1551 | Push-Up
+Dips_-_Chest_Version | - | | closest: wger 194 "Dips" (general; lists muscles, no steps, not the chest version)
+
+# --- shoulders
+Standing_Military_Press | 1893 | Overhead Barbell Press | wger 687 "Overhead Press" has an empty text
+Dumbbell_Shoulder_Press | 567 | Shoulder Press, Dumbbells
+Machine_Shoulder_Military_Press | - | | wger 543 "Shoulder Press, on Machine" is the same lift, but its text is empty
+Side_Lateral_Raise | 348 | Lateral Raises
+Standing_Low-Pulley_Deltoid_Raise | 1378 | Cable Lateral Raises (Single Arm)
+Lateral_Raise_-_With_Bands | - | | nothing similar in wger
+Front_Dumbbell_Raise | 256 | Front Raises
+Reverse_Flyes | - | | wger 828 "Incline Bench Reverse Fly" is the same lift, but its text says what it targets, not how to do it
+Reverse_Machine_Flyes | 1775 | Pec deck rear delt fly
+Face_Pull | 222 | Facepull
+Band_Pull_Apart | 1380 | Band pull-aparts
+
+# --- lats
+Pullups | 475 | Pull-ups
+Chin-Up | 152 | Chin Up
+Band_Assisted_Pull-Up | - | | closest: wger 1929 "Assisted Pull-Up" (machine or band; no steps)
+Wide-Grip_Lat_Pulldown | 723 | Wide-grip Pulldown
+Close-Grip_Front_Lat_Pulldown | 158 | Close-grip Lat Pull Down
+Straight-Arm_Pulldown | 628 | Straight-arm Pull Down (bar Attachment)
+
+# --- middle back
+Bent_Over_Barbell_Row | 83 | Bent Over Rowing
+One-Arm_Dumbbell_Row | - | | closest: wger 81 "Bent Over Dumbbell Rows (Single Arm)" (no bench support) and 1701 "One-Arm Heavy Row" (text covers only the pull)
+Dumbbell_Incline_Row | 1283 | Incline Chest-Supported Dumbbell Row
+Seated_Cable_Rows | 1117 | Seated Cable Row
+Lying_T-Bar_Row | - | | closest: wger 513 "Rowing, T-bar" (standing, not chest-supported)
+Leverage_Iso_Row | - | | wger 380 "Leverage Machine Iso Row" is the same lift, but its text is one line about seat height
+Inverted_Row | 1198 | Inverted Rows
+
+# --- traps
+Barbell_Shrug | 571 | Shrugs, Barbells
+Dumbbell_Shrug | 572 | Shrugs, Dumbbells
+
+# --- lower back
+Barbell_Deadlift | 184 | Deadlifts
+Hyperextensions_Back_Extensions | 301 | Hyperextensions
+
+# --- biceps
+Barbell_Curl | 91 | Biceps Curls With Barbell
+EZ-Bar_Curl | 94 | Biceps Curls With SZ-bar
+Dumbbell_Bicep_Curl | 92 | Biceps Curls With Dumbbell
+Hammer_Curls | 272 | Hammer Curls
+Incline_Dumbbell_Curl | 204 | Dumbbell Incline Curl
+Preacher_Curl | 465 | Preacher Curls
+Machine_Preacher_Curls | 2633 | Preacher Curl Machine
+Standing_Biceps_Cable_Curl | 95 | Biceps Curl With Cable | wger 1531 "Cable Curls" has a one-line text
+
+# --- triceps
+Triceps_Pushdown | 660 | Triceps Extensions on Cable With Bar | same movement under another name; wger 1185 "Triceps Pushdown" has a one-line text
+Cable_Rope_Overhead_Triceps_Extension | 1513 | Overhead Cable Tricep Extension
+EZ-Bar_Skullcrusher | 246 | Skullcrusher SZ-bar
+Standing_Dumbbell_Triceps_Extension | 211 | Dumbbell Triceps Extension
+Close-Grip_Barbell_Bench_Press | 76 | Bench Press Narrow Grip
+Dips_-_Triceps_Version | - | | closest: wger 194 "Dips" (general; no steps) and 1372 "Triceps Dips (Assisted)" (assisted machine)
+Bench_Dips | - | | closest: wger 197 "Dips Between Two Benches" (feet up on a second bench) and 1774 "Chair dips"
+Dip_Machine | - | | nothing similar in wger
+
+# --- forearms
+Palms-Up_Barbell_Wrist_Curl_Over_A_Bench | 51 | Barbell Wrist Curl
+
+# --- quadriceps
+Barbell_Squat | 615 | Squats
+Front_Barbell_Squat | - | | wger 257 "Front Squats" is the same lift, but its text only lists muscles
+Goblet_Squat | - | | closest: wger 203 "Dumbbell Goblet Squat" (uses a dumbbell; ours uses a kettlebell)
+Bodyweight_Squat | - | | wger 1312 "Bodyweight Squat HD" is the same exercise, but its text only lists benefits
+Leg_Press | 371 | Leg Press
+Hack_Squat | 1414 | Hack Squats
+Smith_Machine_Squat | 1747 | Smith machine squat
+Leg_Extensions | 369 | Leg Extension
+Dumbbell_Lunges | - | | wger 205 "Dumbbell Lunges Standing" is the same exercise, but its text is "."
+Bodyweight_Walking_Lunge | - | | closest: wger 206 "Dumbbell Lunges Walking" (its text allows hands on hips, but it is the dumbbell exercise)
+Split_Squat_with_Dumbbells | 1706 | Bulgarian Squat with Dumbbells
+Trap_Bar_Deadlift | - | | closest: wger 1803 "Trap Bar Squat" (a different lift)
+
+# --- hamstrings
+Romanian_Deadlift | 1700 | Barbell Romanian Deadlift (RDL) | wger 507 "Romanian Deadlift" text is only a video link
+Stiff-Legged_Dumbbell_Deadlift | - | | closest: wger 1652 "Dumbbell Romanian Deadlift" (a different lift); wger 627 is the barbell version with a two-cue text
+Lying_Leg_Curls | 365 | Leg Curls (laying)
+Seated_Leg_Curl | - | | wger 366 "Leg Curls (sitting)" is the same exercise, but its text is empty
+Good_Morning | - | | closest: wger 1392 "Good Morning" (bodyweight; ours uses a barbell)
+Ball_Leg_Curl | - | | nothing similar in wger
+Glute_Ham_Raise | 2478 | Glute-Ham Raise
+
+# --- glutes
+Barbell_Hip_Thrust | 294 | Hip Thrust
+Butt_Lift_Bridge | 265 | Glute Bridge
+Single_Leg_Glute_Bridge | - | | wger 1740 "Single Leg Glute Bridge" is the same exercise, but its text is one short sentence
+One-Legged_Cable_Kickback | 1131 | Cable glute extension
+Pull_Through | 1751 | Cable pull through
+
+# --- abductors / adductors
+Thigh_Abductor | 1748 | Machine Hip Abduction
+Thigh_Adductor | - | | wger 12 "Seated Hip Adduction" is the same machine, but its text stops after the starting position
+Monster_Walk | 2665 | Banded Monster Walk
+Band_Hip_Adductions | - | | nothing similar in wger
+
+# --- calves
+Standing_Calf_Raises | 622 | Standing Calf Raises
+Seated_Calf_Raise | 590 | Sitting Calf Raises
+Calf_Press_On_The_Leg_Press_Machine | 146 | Calf Press Using Leg Press Machine
+Standing_Dumbbell_Calf_Raise | 2661 | Dumbbell Calf Raise
+
+# --- abdominals
+Plank | 458 | Plank
+Side_Bridge | 580 | Side Plank
+Crunches | 167 | Crunches
+Russian_Twist | - | | closest: wger 1193 "Russian Twist" (holds a weight; ours is bodyweight)
+Cable_Crunch | 173 | Crunches With Cable
+Ab_Crunch_Machine | 172 | Crunches on Machine
+Hanging_Leg_Raise | - | | wger 283 "Hanging Leg Raises" is the same exercise, but its text is one short line
+Knee_Hip_Raise_On_Parallel_Bars | 2674 | Captain's Chair Knee Raise
+Ab_Roller | 1573 | Ab wheel
+
+# --- stretches
+Childs_Pose | 1002 | Child's pose
+Cat_Stretch | - | | closest: wger 1244 "Yoga exercise: Cow-cat" (cat and cow together; ours is the cat half only)
+Worlds_Greatest_Stretch | - | | nothing similar in wger
+Kneeling_Hip_Flexor | 1867 | Hip Flexor Stretch
+Seated_Floor_Hamstring_Stretch | - | | closest: wger 1393 "Single Leg Hamstring Stretch" (one leg; ours is both legs)
+Calf_Stretch_Hands_Against_Wall | - | | wger 1239 "Standing Calf Stretch" looks like the same stretch, but its text does not say how to do it
+On_Your_Side_Quad_Stretch | - | | closest: wger 2687 "Quadriceps Stretch" (standing; ours is lying on the side)
+Ankle_On_The_Knee | 1869 | Lying Figure Four Stretch
+Knee_Across_The_Body | - | | nothing similar in wger
+Adductor_Groin | - | | closest: wger 1843 "Butterfly Stretch" (seated, alone; ours is lying down with a partner)
+Chest_And_Front_Of_Shoulder_Stretch | - | | nothing similar in wger
+Shoulder_Stretch | 2685 | Cross-Body Stretch
+Triceps_Stretch | 1230 | Triceps stretch left | wger splits this stretch into left (1230) and right (1231); the text describes the left arm
+One_Arm_Against_Wall | - | | nothing similar in wger
+Side_Neck_Stretch | 1008 | Left neck stretch | wger splits this stretch into left (1008) and right (1009); the text is the same for both
+
+# --- cardio
+Running_Treadmill | - | | wger 530 "Run - Treadmill" text is only "Run on a treadmill"; wger 1615 "Treadmill Cardio" covers walking and running together
+Walking_Treadmill | - | | closest: wger 1615 "Treadmill Cardio" (covers walking and running together)
+Bicycling_Stationary | - | | wger 624 "Stationary Bike" text is one short line; wger 1618 "Stationary bike cardio" only lists benefits
+Recumbent_Bike | 1376 | Recumbent Bike
+Elliptical_Trainer | - | | wger 962 "Elliptical" is the same machine, but its text only lists benefits
+Rowing_Stationary | - | | wger 1093 "Rowing Machine" is the same machine, but its text is one short line
+Stairmaster | 1548 | Stair Master
+Rope_Jumping | 993 | Jump rope: basic jumps
