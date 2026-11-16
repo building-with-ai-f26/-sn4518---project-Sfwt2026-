@@ -5,6 +5,16 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Codex: session close, local work saved
+
+**Done:** Saved the base-week weekday fix and regression coverage in local commit `c58dd1d` (`Respect saved base-week weekdays in workout view`). All 90 deterministic tests passed; the regression failed before the fix. No manual browser verification was performed. Prior local assignment/PRD audit notes were included in that commit.
+
+**User preference:** Keep this work local. No push to GitHub was requested or performed. User is exiting the session; this final handoff is committed locally as well.
+
+**Next session:** The local app honors saved weekdays and preserves swaps on unchanged days. Reload `prototype/index.html` to try moving Monday to Tuesday and saving the week. No further implementation is pending for this bug; manual browser confirmation remains available. Existing unrelated Build 2 follow-ups are recorded below.
+
+---
+
 ## 2026-11-16 — Codex: saved base-week weekdays respected
 
 **Done:** With user approval, fixed the dated workout screen moving an explicitly saved Tuesday session back to Monday. The coach's recovery-spacing optimizer caused this for adjacent sessions sharing muscle groups. Added an opt-in `preserveDays` setting and enabled it for the saved-workout screen; recovery warnings remain, and constraint planning retains its existing scheduling behavior. Existing reconciliation keeps swaps on unchanged weekdays; changed weekdays regenerate their exercises.
