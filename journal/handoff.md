@@ -5,6 +5,22 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Claude Code: wger API call in the info bubble
+
+**Done (4 commits, pushed):** Opening an exercise's ⓘ bubble now fetches its description from the wger REST API (`https://wger.de/api/v2/exercise-translation/?exercise=<wgerId>&language=2`, no key). New `prototype/wger.js` does the call, keeps answers in memory for the page session (one request per exercise; failed calls are not kept, so a later click retries; 8-second timeout) and turns wger's HTML into plain text. The bubble shows "Loading…", then wger's text with a "Description: wger.de (CC BY-SA)" line. With no `wgerId`, an empty wger text or a failed call it shows the catalog's own instructions; "Description coming soon." is gone. A late answer is ignored if the bubble has closed or moved on. Every catalog entry has a `wgerId` (number or `null`) from the new hand-reviewed `scripts/wger-matches.txt`, read by `scripts/build-catalog.js`; `scripts/wger-lookup.js` searches wger. `AGENTS.md` and the Product Page status line and Build 2 log mention the API. 86 tests pass; tests use a fake `fetch`.
+
+**Matching:** 78 of 120 matched, 42 not. Rule used: same movement, equipment and variation, and wger's English text explains the movement in about 100+ characters. Each unmatched line in `wger-matches.txt` says why (nothing similar / wger's text is empty or too thin / closest is a different variation). The user will review the 42.
+
+**Checked in Chrome** (desktop width, temporary localhost server, live API): Loading… then wger text, credit line, long text scrolls in the bubble, one request per exercise, no-match exercise shows catalog text at once, simulated offline falls back and a later click retries, and a page with origin `null` (what a double-clicked `file://` page has) can call wger. No console errors. Not checked: phone width, and the real double-clicked file itself.
+
+**Known limits:** wger's text quality is uneven. A few matched descriptions end with a raw video link or a translator credit, shown as written. wger's old `exercise/search/` endpoint no longer exists; the lookup script downloads the English list instead.
+
+**Open:** The Product Page still needs a screenshot or recording of the API call for Build 2 (the user wants it taken after their next change); its Demo line and `prototype.png` are still the Build 1 example week. PRD on the page is still v1. Build 2 log cost and hours are still blank.
+
+**Next step:** the user's next change, then the screenshot. After that, still the **Modify remaining workouts** button (2026-11-13 entry).
+
+---
+
 ## 2026-11-16 — Claude Code: exercise info buttons (placeholders)
 
 **Done (uncommitted):** Every exercise row in `prototype/index.html` now has an ⓘ button (an "i" in a circle) after the name, on every day including read-only ones. It opens one shared bubble placed under the button, with the exercise name, a text area and a GIF area. The bubble sits outside the exercise tables so their horizontal scroll box can't cut it off. It closes on ✕, a second click, a click outside, Esc (focus returns to the ⓘ), window resize and any re-render. Content comes from `exerciseInfo(id)`, which returns placeholders for now ("Description coming soon." / "GIF coming soon"). It is looked up live and never stored in saved weeks. Also replaced the outdated "Base-week edits apply next week" hint. New `tests/info.test.js` (3 tests); the stub in `tests/swaps.test.js` gained `window.addEventListener`. 74 tests pass. Checked in Chrome on desktop width via a temporary localhost server: bubble opens under the icon, Esc closes it and returns focus, no console errors. Phone width not checked.
