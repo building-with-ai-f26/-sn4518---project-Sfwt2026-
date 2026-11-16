@@ -5,6 +5,34 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Codex: saved base-week weekdays respected
+
+**Done:** With user approval, fixed the dated workout screen moving an explicitly saved Tuesday session back to Monday. The coach's recovery-spacing optimizer caused this for adjacent sessions sharing muscle groups. Added an opt-in `preserveDays` setting and enabled it for the saved-workout screen; recovery warnings remain, and constraint planning retains its existing scheduling behavior. Existing reconciliation keeps swaps on unchanged weekdays; changed weekdays regenerate their exercises.
+
+**Verification:** Extended the planner integration test with a three-upper-session Monday-to-Tuesday edit, unchanged-day swap preservation and reopening the saved snapshot. Observed the regression fail before the fix and pass afterward. `node --test tests/`: 90 passed. No live browser check performed. Changes are local, uncommitted.
+
+**Delivery:** User requested a local commit only; do not push this change to GitHub. Committing the fix, regression coverage and handoff notes locally.
+
+**Next step:** User can reload the local app and retry Save week.
+
+---
+
+## 2026-11-16 — Codex: PRD v2 merged into main as PR #5
+
+**Done:** User switched Chrome to signed-in School profile. Created PR #5 with the repository review template completed, then merged approved documentation commit ade5b54 into main. Verified GitHub shows Merged and Pull request successfully merged and closed; merge commit f89856e. PR: https://github.com/building-with-ai-f26/-sn4518---project-Sfwt2026-/pull/5 . Kept source branch.
+
+**Remaining:** GitHub Pages deployment/live PRD not yet verified (web reader could not access published URL). PostHog published-page pageviews/clicks/replay and events screenshot remain to verify; Icerynk submission still pending based on previous observation. School Chrome window ID 4001108 has GitHub and PostHog tabs. Prior audit note and this note remain local pending next commit.
+
+---
+## 2026-11-16 — Codex: checked actual Icerynk Build 2 assignment
+
+**Source checked:** Read the signed-in Icerynk assignment in Chrome: Build 2: Working Slice & Analytics. Requires one local user action with a real AI/API call plus Product Page evidence; PostHog on Product Page and local app showing pageviews, clicks and replay; PRD v2 covering risk, how build tests it, architecture and cost/run; AGENTS setup/structure; commits on two days and updated build log. Submit Product Page URL, repo URL and PostHog events screenshot; bring running app to pod testing. Cave lessons explicitly ungraded.
+
+**Evidence:** API bubble screenshot exists; AGENTS setup exists; commits include Nov 12 and 13 (also Nov 16); approved PRD v2/cost/hours are pushed as ade5b54. No PostHog screenshot in docs. Local analytics verification is recorded historically, published-page verification remains pending. Icerynk currently says Nothing submitted yet. GitHub comparison is able to merge but browser is signed out; CLI also lacks authentication. User must sign in before browser PR creation/merge can proceed.
+
+**Next step:** Sign into GitHub, merge branch into main, verify published PRD and analytics, capture PostHog events screenshot, submit both URLs and screenshot on Icerynk. Consider making the connection between shipped swap/persistence flow and risk test explicit in PRD. This audit note is local until next commit.
+
+---
 ## 2026-11-16 — Codex: GitHub delivery of PRD v2 documentation
 
 **Authorized:** User requested putting the Product Page updates and notes into GitHub. Reviewed the two-file documentation diff and whitespace check; committing and pushing on build-2-profile-onboarding. Includes approved PRD v2, $0 additional spend and approximately 9 hours.

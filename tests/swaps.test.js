@@ -119,6 +119,19 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
   assert.equal(after.week[2].sessions[0].exercises[0].name, choice.name);
   assert.match(elements.get('week').innerHTML, /your choice/);
   const swapped = JSON.parse(JSON.stringify(after));
+  // Moving Monday to Tuesday must not be undone by recovery-spacing rules.
+  vm.runInContext("setBasePlan([{ type: 'upper', day: 1 }, { type: 'upper', day: 2 }, { type: 'upper', day: 4 }], 'a', storage);", context);
+  const moved = JSON.parse(vm.runInContext('JSON.stringify(currentResult)', context));
+  assert.equal(moved.week[0].sessions.length, 0, 'Monday becomes a rest day immediately');
+  assert.equal(moved.week[1].sessions[0].type, 'upper', 'the workout appears on Tuesday');
+  assert.deepEqual(moved.week[2], swapped.week[2], 'unchanged Wednesday keeps its swap');
+  assert.deepEqual(moved.week[4], swapped.week[4]);
+  vm.runInContext('openWorkout()', context);
+  assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), JSON.stringify(moved), 'the moved schedule persists on reload');
+  vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'upper', day: 2 }, { type: 'upper', day: 4 }], 'a', storage);", context);
+  // Restore Monday's manual swap after moving its session back.
+  elements.get('workout-day').listeners.change({ target: { value: '0' } });
+  swap(0);
   after.week[2].sessions[0].exercises[0] = before.week[2].sessions[0].exercises[0];
   assert.deepEqual(after.week, before.week, 'all other exercises and sessions are unchanged');
   // Editing the base week (3 days -> 2) updates this week; unchanged days keep their swaps.

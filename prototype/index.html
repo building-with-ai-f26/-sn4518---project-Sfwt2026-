@@ -388,7 +388,7 @@
       const today = WW.calendar();
       selectedDay = today.day;
       workoutRecord = workoutStore.load(workoutProfile, today.week);
-      const fresh = adjustWeek({ basePlan: state.plan, daysAvailable: state.plan.length, activities: [], equipment: 'full' });
+      const fresh = adjustWeek({ basePlan: state.plan, daysAvailable: state.plan.length, activities: [], equipment: 'full', preserveDays: true });
       if (!workoutRecord) {
         workoutRecord = { version: 1, week: today.week, equipment: 'full', result: fresh };
       } else {
