@@ -1,5 +1,15 @@
 # Agent handoff log
 
+## 2026-11-17 — Codex: Workout History popup, Step 2
+
+- User approved clickable history dates and a popup showing workout type, exercises with reps >0, sets, reps and weight in lb.
+- Date buttons now open a read-only native dialog for the edited profile's saved date. Positive-rep exercises include bodyweight entries (0 lb); weight-only entries with 0 reps are excluded as requested. Empty positive-rep days have a clear message; legacy workout types remain "Logged workout".
+- Popup scrolls at 80vh, supports Close, native Escape/focus handling, and outside click. Screen changes close it. No storage format changes.
+- Validation: 114 tests pass, including popup date selection, profile isolation, positive-rep filtering, escaped names, legacy labels, unchanged saved data and close/outside-click behavior. Browser visual desktop/mobile checks remain outstanding after the prior session's browser automation blocker; native Escape/focus behavior is not exercised by the fake-page test.
+- Keep local; nothing pushed. Next: user checks popup appearance on desktop/phone.
+
+---
+
 ## 2026-11-16 — Codex: Workout History panel, Step 1
 
 - User approved Step 1 only: right side of Edit Profile has a scrollable saved-date/type list, newest first, scoped to the edited profile. At widths <=820px it stacks below the form. Hidden when creating a profile; empty state for no logs.
