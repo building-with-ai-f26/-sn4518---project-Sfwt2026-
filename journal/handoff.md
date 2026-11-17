@@ -5,6 +5,27 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Claude Code: Step 1 of workout logging, two modes for "Your week"
+
+**Context:** Build 2 is submitted (user confirmed; PostHog screenshot taken, Product Page merged this morning). The user said not to merge these next changes. Keep committing on `build-2-profile-onboarding`; don't push or merge unless asked.
+
+**Agreed plan (one small commit per step):**
+1. Mode switch: "Modify Current Week" / "Log Today's Exercise". **DONE in this commit.**
+2. Change this week's days only (add/remove a workout day, move a workout to another day) without touching the base workout. Watch out: `openWorkout()` compares this week to the base workout and rebuilds days that differ, so a week-only move would snap back on reload. The week record must remember the base it was built from.
+3. Add or remove exercises in a day, this week only.
+4. `prototype/history.js`: one history per person (`flexweek:history:<profileId>`). An entry = date + exercise id/name + **sets, reps and weight in lb** (lb only for now). Lookup of the last result per exercise. Stored by exercise, so swaps or base edits never erase history.
+5. and 6. Log mode gets three boxes per exercise (Sets, Reps, Weight lb). Each box's grey placeholder is the last result, or "–" the first time. Saves on change. Any day of the current week can be logged (same rule as Modify mode).
+
+**Renamed with the user:** "Edit base week" → "Edit Base Workout" (both buttons). For consistency, also "Save base workout", heading "1 · Base workout", edit-screen title "Edit base workout", and a rewritten hint ("Saving a new one changes this week and every week after it"). Code names (`baseweek.js`, `edit-week`, `flexweek:week:`) were not renamed. `docs/index.html` and AGENTS.md still say "base week"; not updated.
+
+**Done:** `prototype/index.html` has a two-button switch in the "Your week" card (`mode-modify` / `mode-log`, `aria-pressed`). The mode lives in the `mode` variable: it survives redraws, and a page reload starts in Modify. Modify behaves as before. Log shows only the selected day, with no "Switch to" column, keeps the ⓘ button, shows "Rest day. Nothing to log." on rest days and hides the "What changed & why" card. The swap handler ignores events unless in Modify mode. New `tests/modes.test.js` (4 tests). `node --test tests/`: 94 pass.
+
+**Checked in Chrome** (temporary localhost server, an existing test profile on that origin): both modes, a rest day, the ⓘ bubble in Log mode, reload back to Modify, no console errors. Phone width was checked in a 390px frame because the window wouldn't resize: the two buttons stack, and the page doesn't scroll sideways. No swap was done in the browser (the tests cover it).
+
+**Next step:** Step 2. Propose its design first (how the week remembers its base, and what happens to week-only changes when the base workout is edited afterwards).
+
+---
+
 ## 2026-11-16 — Codex: session close, local work saved
 
 **Done:** Saved the base-week weekday fix and regression coverage in local commit `c58dd1d` (`Respect saved base-week weekdays in workout view`). All 90 deterministic tests passed; the regression failed before the fix. No manual browser verification was performed. Prior local assignment/PRD audit notes were included in that commit.
