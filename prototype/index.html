@@ -428,6 +428,9 @@
         const logging = log && !logged && w.sessions.length > 0; // show the boxes and the Save button
         const draft = logging ? draftFor(dayDate(dayIndex)) : null;
         if (!log && dayIndex === selectedDay) parts.push('<p class="hint">Selected workout</p>');
+        if (!log && editable && w.sessions.length) {
+          parts.push(`<label>Change workout type <select data-type-day="${dayIndex}" aria-label="Change ${w.day} workout type"><option value="">Choose workout type…</option>${Object.entries(SESSION_TYPES).map(([type, info]) => `<option value="${type}">${info.name}</option>`).join('')}</select></label><p class="hint">Replaces this day’s exercise edits and clears unsaved logging numbers. This date only; your base workout stays the same.</p>`);
+        }
         if (logged) parts.push('<span class="chip logged">Logged ✓</span>');
         if (logging) parts.push('<p class="hint">Grey numbers are your last logged result for that exercise. Reps and Weight both 0 or blank skip the exercise.</p>');
         let exerciseNumber = 0;
@@ -502,7 +505,7 @@
       }
     }
 
-    function openWorkout() {
+    function openWorkout(resetTemporary = false) {
       const today = WW.calendar();
       selectedDay = today.day;
       workoutRecord = workoutStore.load(workoutProfile, today.week);
@@ -514,8 +517,18 @@
         // and added/removed exercises, and logged days stay exactly as they were done.
         const types = (d) => d.sessions.map((s) => s.type).join(',');
         const old = workoutRecord.result;
-        const keep = (i) => types(fresh.week[i]) === types(old.week[i]) ||
-          Boolean(historyStore.loadDay(workoutProfile, H.dateOf(today.week, i)));
+        const temporary = Array.isArray(workoutRecord.temporaryDays) ? workoutRecord.temporaryDays : [];
+        const baseChanged = resetTemporary || (workoutRecord.basePlan && JSON.stringify(workoutRecord.basePlan) !== JSON.stringify(state.plan));
+        const keep = (i) => Boolean(historyStore.loadDay(workoutProfile, H.dateOf(today.week, i))) ||
+          (temporary.includes(i) ? !baseChanged : types(fresh.week[i]) === types(old.week[i]));
+        for (const i of temporary) {
+          if (!keep(i)) {
+            const date = H.dateOf(today.week, i);
+            delete drafts[date];
+            historyStore.clearDraft(workoutProfile, date);
+          }
+        }
+        if (baseChanged) workoutRecord.temporaryDays = [];
         if (old.week.some((d, i) => !keep(i))) {
           fresh.week = fresh.week.map((d, i) => (keep(i) ? old.week[i] : d));
           fresh.changes = fresh.changes.concat(old.changes.filter((c) => c.kind === 'manual' && keep(c.day)));
@@ -526,6 +539,7 @@
           workoutRecord.result = fresh;
         }
       }
+      workoutRecord.basePlan = state.plan.map((s) => ({ ...s }));
       currentResult = workoutRecord.result;
       resultEquipment = workoutRecord.equipment;
       saveWorkout();
@@ -621,7 +635,28 @@
     $('week').addEventListener('change', (event) => {
       const t = event.target;
       if (!t.value || !currentResult || !t.dataset) return;
-      if (t.dataset.swapDay !== undefined) {
+      if (t.dataset.typeDay !== undefined) {
+        const day = Number(t.dataset.typeDay);
+        const session = changeableSession(day, 0);
+        if (!session || mode !== 'modify' || !Object.hasOwn(SESSION_TYPES, t.value)) return;
+        const replacement = adjustWeek({ basePlan: [{ type: t.value, day }], daysAvailable: 1,
+          activities: [], equipment: resultEquipment, preserveDays: true }).week[day].sessions;
+        const date = dayDate(day);
+        // Clear persistent numbers before replacing the routine; a failed write leaves the routine intact.
+        try { historyStore.clearDraft(workoutProfile, date); } catch (_) {
+          $('workout-storage-error').textContent = 'Could not clear unsaved numbers. The workout type was not changed.';
+          $('workout-storage-error').hidden = false;
+          return;
+        }
+        delete drafts[date];
+        logError = '';
+        currentResult.week[day].sessions = replacement;
+        currentResult.changes = currentResult.changes.filter((c) => c.day !== day);
+        currentResult.changes.push({ kind: 'manual', action: 'type', day,
+          text: `Changed ${DAYS[day]} to ${SESSION_TYPES[t.value].name} with default exercises, for this date only.` });
+        currentResult.notes = currentResult.notes.filter((n) => n !== NO_CHANGES);
+        workoutRecord.temporaryDays = [...new Set([...(workoutRecord.temporaryDays || []), day])];
+      } else if (t.dataset.swapDay !== undefined) {
         const day = Number(t.dataset.swapDay);
         const session = changeableSession(day, Number(t.dataset.swapSession));
         if (!session) return;
@@ -785,7 +820,7 @@
       }
     });
 
-    function setBasePlan(week, profileId, storage) {
+    function setBasePlan(week, profileId, storage, resetTemporary = false) {
       state.plan = week.map((s) => ({ type: s.type, day: s.day }));
       workoutProfile = profileId;
       workoutStore = WW.createWorkoutStore(storage);
@@ -793,7 +828,7 @@
       drafts = {};
       logError = '';
       renderInputs();
-      openWorkout();
+      openWorkout(resetTemporary);
     }
 
     renderInputs();
@@ -993,17 +1028,17 @@
           $('wk-errors').innerHTML = r.errors.map((m) => `<p class="field-error" role="alert">${esc(m)}</p>`).join('');
           return;
         }
-        openMain(id);
+        openMain(id, true);
       });
       $('week-cancel').addEventListener('click', () => openMain(store.getCurrentId()));
       $('edit-week').addEventListener('click', () => openWeek(store.getCurrentId()));
 
       // Planner. A person without a base week yet (new, or saved before step 2 existed) sets one up first.
-      function openMain(id) {
+      function openMain(id, resetTemporary = false) {
         store.setCurrentId(id);
         const week = weekStore.loadWeek(id);
         if (!week) { openWeek(id); return; }
-        setBasePlan(week, id, storage);
+        setBasePlan(week, id, storage, resetTemporary);
         const p = store.loadProfile(id).profile;
         const value = bmi(p.heightCm, p.weightKg);
         $('who').innerHTML = `<strong>${esc(p.nickname)}</strong> · ${GOALS[p.goal]} · BMI ${value.toFixed(1)}`;

@@ -1,5 +1,15 @@
 # Agent handoff log
 
+## 2026-11-17 — Codex: temporary whole-day workout type changes
+
+- Approved scope: in Modify Current Week, selected unlogged workout dates have Change workout type. Choosing Upper/Lower/Full Body/Push/Pull/Legs replaces the day's exercises with defaults using the existing coach, clears all unsaved numbers for that date, and removes its earlier edit explanations. Logged dates and rest days cannot be changed here. Base workout and history are untouched.
+- Weekly record now saves `basePlan` snapshot and `temporaryDays` indexes. Temporary choices survive reload/profile navigation, apply only to this week's record, and are discarded on explicit base-workout save (even unchanged base) or detected base-plan changes. Logged dates remain final. Normal unchanged base days retain their existing exercise edits.
+- Base-save reset passes through openMain/setBasePlan/openWorkout; cancelling base edits or editing profile does not reset temporary choices. Replacing a temporary routine via a base save also clears that date's draft numbers.
+- Validation: node --test tests/ = 117 pass, 0 fail; git diff --check passed. New tests cover defaults, drafts, reload, other days, reset, locked/rest/unselected dates, invalid types and log-mode guard. Desktop/phone visual checks remain outstanding due to the earlier browser-control blocker.
+- Local changes only; no push. Next: user checks the selector and replacement flow in the browser.
+
+---
+
 ## 2026-11-17 — Codex: Workout History popup, Step 2
 
 - User approved clickable history dates and a popup showing workout type, exercises with reps >0, sets, reps and weight in lb.

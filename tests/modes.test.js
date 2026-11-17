@@ -60,7 +60,75 @@ function loadPlanner(data = new Map()) {
 
 const FRIDAY = '2026-11-13'; // day 4 of the fixed week of 2026-11-09
 const fridayExercises = (page) => JSON.parse(page.result()).week[4].sessions[0].exercises;
+const changeType = (page, day, type) => page.el('week').listeners.change({ target: { dataset: { typeDay: String(day) }, value: type } });
 const history = (page) => JSON.parse(page.data.get('flexweek:history:a') || 'null');
+
+test('whole-day type replacement uses defaults, clears edits and drafts, survives reload and expires with the week', () => {
+  const page = loadPlanner();
+  const original = JSON.parse(page.result());
+  page.remove(4, 0);
+  page.click('mode-log');
+  page.type(fridayExercises(page)[0].id, 'reps', '12');
+  page.click('mode-modify');
+  changeType(page, 4, 'legs');
+  const result = JSON.parse(page.result());
+  const defaults = require('../prototype/coach.js').adjustWeek({ basePlan: [{ type: 'legs', day: 4 }], daysAvailable: 1, equipment: 'full', preserveDays: true });
+  assert.deepEqual(result.week[4].sessions, defaults.week[4].sessions);
+  assert.deepEqual(result.week[0], original.week[0]);
+  assert.equal(page.data.has('flexweek:draft:a:2026-11-13'), false);
+  assert.equal(result.changes.filter((c) => c.day === 4).length, 1);
+  assert.match(page.el('changes').innerHTML, /Changed Fri to Legs/);
+  const reopened = loadPlanner(page.data);
+  assert.equal(JSON.parse(reopened.result()).week[4].sessions[0].type, 'legs');
+  reopened.click('mode-log');
+  assert.doesNotMatch(reopened.week(), /value="12"/);
+  assert.doesNotMatch(reopened.week(), /data-type-day/);
+  reopened.run("workoutStore = WW.createWorkoutStore(storage); workoutStore.load = () => null; openWorkout();");
+  assert.equal(JSON.parse(reopened.result()).week[4].sessions[0].type, 'full', 'a week without a saved record uses the base');
+});
+
+test('type changes refuse rest, logged, unselected, invalid and log-mode requests', () => {
+  const page = loadPlanner();
+  assert.match(page.week(), /data-type-day="4"/);
+  for (const [day, type] of [[1, 'legs'], [0, 'legs'], [4, 'invalid']]) {
+    const before = page.result();
+    changeType(page, day, type);
+    assert.equal(page.result(), before);
+  }
+  page.click('mode-log');
+  const before = page.result();
+  changeType(page, 4, 'legs');
+  assert.equal(page.result(), before);
+  page.type(fridayExercises(page)[0].id, 'reps', '8');
+  page.save(4);
+  const saved = page.result();
+  const savedHistory = page.data.get('flexweek:history:a');
+  page.click('mode-modify');
+  changeType(page, 4, 'legs');
+  assert.equal(page.result(), saved);
+  assert.equal(page.data.get('flexweek:history:a'), savedHistory);
+  assert.doesNotMatch(page.week(), /data-type-day/);
+});
+
+test('saving base workout discards temporary types even when base is unchanged; logged days stay final', () => {
+  const page = loadPlanner();
+  const base = "[{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }]";
+  changeType(page, 4, 'legs');
+  page.run(`setBasePlan(${base}, 'a', storage, true);`);
+  assert.equal(JSON.parse(page.result()).week[4].sessions[0].type, 'full');
+  assert.doesNotMatch(page.el('changes').innerHTML, /Changed Fri/);
+  page.pickDay(4);
+  changeType(page, 4, 'pull');
+  page.run("setBasePlan([{ type: 'push', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }], 'a', storage);");
+  assert.equal(JSON.parse(page.result()).week[4].sessions[0].type, 'full', 'changed base detected on reopening');
+  page.pickDay(4);
+  changeType(page, 4, 'legs');
+  page.click('mode-log');
+  page.type(fridayExercises(page)[0].id, 'reps', '8');
+  page.save(4);
+  page.run(`setBasePlan(${base}, 'a', storage, true);`);
+  assert.equal(JSON.parse(page.result()).week[4].sessions[0].type, 'legs');
+});
 
 test('the page opens in "Modify Current Week" with the whole week and swap menus', () => {
   const page = loadPlanner();
