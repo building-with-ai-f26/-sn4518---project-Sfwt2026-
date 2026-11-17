@@ -1,5 +1,15 @@
 # Agent handoff log
 
+## 2026-11-17 — Codex: publishing and merging local work
+
+- User explicitly requested commit, GitHub push and merge, superseding the prior local-only preference.
+- Publishing all local work on build-2-profile-onboarding: logging modes and storage, add/remove exercises, profile workout history with clickable read-only details, temporary whole-day type changes, and the subtle blue type-label selector.
+- Latest validation before publication: 117 tests pass. Visual desktop/phone checks remain outstanding; user manually reported history and whole-day replacement working. No product-page/build-log rewrite included.
+- GitHub CLI reports 401, but Git fetch works. Merge through Git into latest origin/main, then push main and feature branch. Check remote refs to confirm completion.
+- Next session: read this handoff, check current branch/status. Pending product work from earlier summary includes UI polish/search, remaining-workout planning, wger unmatched exercise review, and Build 3 documentation. Do not assume any new feature is approved.
+
+---
+
 ## 2026-11-17 — Codex: subtle workout type label selector
 
 - User approved replacing the separate Change workout type control with the existing blue session label as a compact native select. Only selected unlogged dates in Modify Current Week are interactive; other labels remain spans.
