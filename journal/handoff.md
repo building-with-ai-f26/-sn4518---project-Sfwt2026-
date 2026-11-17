@@ -5,6 +5,38 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Claude Code: add or remove exercises, in both modes
+
+**Done (user approved the plan):**
+- On the selected day, in both Modify Current Week and Log Today's Exercise, every exercise row has a "✕ Remove" button next to ⓘ.
+- Each workout table has a "+ Add exercise…" menu: every catalog exercise the equipment allows, grouped by main muscle with `<optgroup>`, leaving out exercises already in that day.
+- An added exercise goes at the end of that workout with 3 sets, its muscle group and an "Added by you." note. In Log mode it gets its own boxes and grey history.
+- Each edit is listed under "What changed & why" as "Your edit" (kind `manual`, with `day`, `action`, `exerciseId`). Adding back what was removed, or removing what was added, cancels the earlier line.
+- Hand edits survive a Base Workout edit when that day's session type is unchanged (they're carried over in `openWorkout()`).
+- New coach helpers: `addableExercises(equipment)` and `addExercise(id, equipment)` in `prototype/coach.js`.
+- One shared guard, `changeableSession()` in `index.html`, now covers swap, add and remove.
+
+**Rules:**
+- Only the selected day of this week, and never a logged day.
+- Not on rest days: that would create a workout day, which belongs to "change days this week".
+- A workout keeps at least one exercise.
+- No duplicates in a day: history and drafts are stored by exercise id.
+- No confirm on Remove.
+
+**Verification:** `node --test tests/`: 112 pass (1 new coach test in `swaps.test.js`, 4 new page tests in `modes.test.js`). In Chrome (temporary localhost server):
+- Removed and added an exercise on Wednesday. The edit list showed both, Log mode showed Leg Press's boxes, and the edits survived a reload. Logged Monday had no Remove buttons. No console errors.
+- Screenshots of the tab kept timing out, so these checks went through the page's own code instead of by eye.
+- At 390px, the Remove button wrapped onto two lines; fixed with `white-space: nowrap`. Neither the page nor the table scrolls sideways now.
+
+**Known limits:**
+- Swapping an added exercise keeps the "Added X" line under the old name.
+- The coach doesn't recheck volume or recovery after hand edits.
+- The Add menu has ~120 options; search could come in the UI pass.
+
+**Still on the list:** the separate history screen (see entry below); changing days for this week only; the UI pass.
+
+---
+
 ## 2026-11-16 — Claude Code: roadmap note, separate history screen; next is add/remove exercises
 
 **Remember (user request):** FlexWeek needs a **separate screen to see historicals**: past logged days and weeks, per person, from `history.js`. The grey placeholders in Log mode don't replace it. It isn't scheduled yet; keep it on the list and raise it when choosing next steps.

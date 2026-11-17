@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { adjustWeek, exerciseAlternatives, swapExercise } = require('../prototype/coach.js');
+const { adjustWeek, exerciseAlternatives, swapExercise, addableExercises, addExercise } = require('../prototype/coach.js');
 const { EXERCISES, canDo } = require('../prototype/exercises.js');
 
 const byName = (name) => EXERCISES.find((e) => e.name === name);
@@ -156,4 +156,16 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
   vm.runInContext("setBasePlan([{ type: 'legs', day: 1 }], 'a', storage);", context);
   assert.equal(vm.runInContext('currentResult.week[2].sessions.length', context), 0);
   assert.equal(JSON.stringify(WW.createWorkoutStore(storage).load('a', '2026-11-09').result), saved);
+});
+
+test('any exercise the equipment allows can be added by hand, with base sets and its muscle group', () => {
+  assert.equal(addableExercises('full').length, EXERCISES.length, 'a full gym can do the whole catalog');
+  assert.ok(addableExercises('home').every((e) => canDo(e, home)));
+  assert.ok(addableExercises('home').length < EXERCISES.length);
+  assert.deepEqual(addableExercises('unknown'), []);
+  const curl = addExercise(byName('Barbell Curl').id, 'full');
+  assert.deepEqual(curl, { id: byName('Barbell Curl').id, name: 'Barbell Curl', group: 'upper', sets: 3, addReason: 'Added by you.' });
+  assert.equal(addExercise(byName('Back Squat').id, 'full').group, 'lower');
+  assert.equal(addExercise(byName('Barbell Curl').id, 'home'), null, 'not possible with that equipment');
+  assert.equal(addExercise('unknown', 'full'), null);
 });

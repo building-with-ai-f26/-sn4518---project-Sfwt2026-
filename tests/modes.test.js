@@ -51,6 +51,10 @@ function loadPlanner(data = new Map()) {
       closest: (selector) => (selector === '[data-save-day]' ? { dataset: { saveDay: String(day) } } : null) } }),
     swap: (day, exercise, id) => el('week').listeners.change({ target: {
       dataset: { swapDay: String(day), swapSession: '0', swapExercise: String(exercise) }, value: id } }),
+    // Picking from "+ Add exercise…", and pressing an exercise's "✕ Remove".
+    add: (day, id) => el('week').listeners.change({ target: { dataset: { addDay: String(day), addSession: '0' }, value: id } }),
+    remove: (day, exercise) => el('week').listeners.click({ target: {
+      closest: (selector) => (selector === '[data-remove]' ? { dataset: { remove: `${day}-0-${exercise}` } } : null) } }),
   };
 }
 
@@ -213,4 +217,76 @@ test('editing the base workout never changes a logged day', () => {
   assert.deepEqual(fridayExercises(page), logged, 'Friday stays as it was done');
   page.run("setBasePlan([{ type: 'upper', day: 0 }, { type: 'legs', day: 2 }, { type: 'full', day: 4 }], 'a', storage);");
   assert.equal(JSON.parse(page.result()).week[2].sessions[0].type, 'legs', 'days not logged still follow the base workout');
+});
+
+test('both modes show Remove buttons and an Add menu on the selected day only', () => {
+  const page = loadPlanner(); // Friday is selected
+  for (const mode of ['mode-modify', 'mode-log']) {
+    page.click(mode);
+    assert.match(page.week(), /data-remove="4-0-0"/, mode);
+    assert.match(page.week(), /data-add-day="4" data-add-session="0"/, mode);
+    assert.doesNotMatch(page.week(), /data-remove="0-|data-add-day="0"/, 'other days stay read-only');
+  }
+  page.pickDay(1); // rest day: adding there would create a new workout day (a later step)
+  assert.doesNotMatch(page.week(), /data-add-day|data-remove/);
+  page.pickDay(4);
+  const ids = fridayExercises(page).map((e) => e.id);
+  const menu = page.week().slice(page.week().indexOf('data-add-day'));
+  assert.ok(ids.every((id) => !menu.includes(`value="${id}"`)), 'exercises already in the day are not offered');
+  assert.match(menu, /<optgroup label="Chest">/);
+});
+
+test('adding while logging puts the exercise at the end, with its own boxes, and lists the edit', () => {
+  const page = loadPlanner();
+  page.click('mode-log');
+  const curl = require('../prototype/exercises.js').EXERCISES.find((e) => e.name === 'Barbell Curl');
+  const before = fridayExercises(page).length;
+  page.add(4, curl.id);
+  const after = fridayExercises(page);
+  assert.equal(after.length, before + 1);
+  assert.deepEqual(after.at(-1), { id: curl.id, name: 'Barbell Curl', group: 'upper', sets: 3, addReason: 'Added by you.' });
+  assert.match(page.week(), new RegExp(`data-log-field="reps" data-log-exercise="${curl.id}"`));
+  assert.match(page.week(), /Added by you\./);
+  assert.ok(!page.week().slice(page.week().indexOf('data-add-day')).includes(`value="${curl.id}"`), 'no second copy offered');
+  page.add(4, curl.id);
+  assert.equal(fridayExercises(page).length, before + 1, 'adding it twice is refused');
+  const saved = JSON.parse(page.data.get('flexweek:workouts:a:2026-11-09')).result;
+  assert.equal(saved.week[4].sessions[0].exercises.at(-1).id, curl.id, 'saved for this week');
+  assert.deepEqual(saved.changes.filter((c) => c.kind === 'manual').map((c) => c.text), ['Added Barbell Curl to Fri Full Body.']);
+  page.click('mode-modify');
+  assert.match(page.el('changes').innerHTML, /Your edit<\/span>Added Barbell Curl to Fri Full Body\./);
+});
+
+test('removing keeps at least one exercise, and add/remove of the same exercise cancel out', () => {
+  const page = loadPlanner();
+  const [first, ...rest] = fridayExercises(page);
+  page.remove(4, 0);
+  assert.deepEqual(fridayExercises(page).map((e) => e.id), rest.map((e) => e.id));
+  assert.match(page.el('changes').innerHTML, new RegExp(`Removed ${first.name} from Fri Full Body\.`));
+  page.add(4, first.id); // put it back
+  const manual = () => JSON.parse(page.result()).changes.filter((c) => c.kind === 'manual');
+  assert.deepEqual(manual(), [], 'adding back what was removed leaves no edit listed');
+  while (fridayExercises(page).length > 1) page.remove(4, 0);
+  assert.doesNotMatch(page.week(), /data-remove="4-/, 'the last exercise has no Remove button');
+  const last = page.result();
+  page.remove(4, 0);
+  assert.equal(page.result(), last, 'and removing it anyway is refused');
+});
+
+test('a logged day refuses adds and removes; base workout edits keep hand edits on unchanged days', () => {
+  const page = loadPlanner();
+  const curl = require('../prototype/exercises.js').EXERCISES.find((e) => e.name === 'Barbell Curl');
+  page.add(4, curl.id);
+  page.run("setBasePlan([{ type: 'upper', day: 0 }, { type: 'legs', day: 2 }, { type: 'full', day: 4 }], 'a', storage);");
+  assert.equal(fridayExercises(page).at(-1).id, curl.id, 'Friday is still Full Body, so the added curl stays');
+  assert.match(page.el('changes').innerHTML, /Added Barbell Curl to Fri Full Body\./);
+  page.pickDay(4);
+  page.click('mode-log');
+  page.type(curl.id, 'reps', '10');
+  page.save(4);
+  const done = page.result();
+  page.add(4, require('../prototype/exercises.js').EXERCISES.find((e) => e.name === 'Hammer Curl').id);
+  page.remove(4, 0);
+  assert.equal(page.result(), done);
+  assert.doesNotMatch(page.week(), /data-remove|data-add-day/);
 });
