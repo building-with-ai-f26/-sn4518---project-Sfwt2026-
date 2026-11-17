@@ -5,6 +5,85 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Claude Code: SESSION SUMMARY for Codex (start here)
+
+The user is switching to Codex. This entry sums up the whole Claude Code session: what's done, the rules agreed, and the plan. The detailed entries below have more on each step.
+
+### Where things stand
+- **Branch:** `build-2-profile-onboarding`. Working tree clean. 8 local commits ahead of `origin/build-2-profile-onboarding`; none pushed.
+- **User preference:** keep this work **local**. Don't push, open PRs or merge into `main` unless the user asks. Build 2 is already submitted, and the Product Page on `main` stays as it was merged this morning.
+- **Tests:** `node --test tests/` → **112 pass**, 0 fail.
+- **Process the user expects:** propose a short plan with risks before multi-file changes and wait for OK (AGENTS.md rule 1). One small commit per step. Add a handoff entry before stopping. Check in Chrome (temporary localhost server), including phone width.
+
+### Commits this session (oldest first)
+1. `f04152d` Two modes in "Your week": **Modify Current Week** / **Log Today's Exercise**. Renamed "Edit base week" → **Edit Base Workout**, with matching on-screen wording.
+2. `fe9fbfc` Swaps allowed in Log mode too; removed the duplicate top-bar Edit Base Workout button (the left-card one stays).
+3. `38950fa` `prototype/history.js` (workout history storage) + `tests/history.test.js`.
+4. `5e6cf82` Logging UI: Sets / Reps / Weight (lb) boxes, grey last-result placeholders, drafts, **Save Logged Day**, final logged days.
+5. `8c8d265` Journal note: a separate history screen is needed.
+6. `5872821` Add or remove exercises on the selected day, in both modes.
+
+### What the app does now (prototype/index.html)
+- **Edit Base Workout** (left card): the permanent usual week. Saving it changes this week and every week after. On this week's days: unchanged session types keep swaps and hand edits, and logged days are never touched.
+- **Modify Current Week** (this week only): pick any weekday from "Current workout day". On that day you can swap exercises for equivalent ones, remove an exercise ("✕ Remove") or add one ("+ Add exercise…": the whole catalog the equipment allows, grouped by main muscle, minus those already in the day). Edits are listed under "What changed & why" as "Your edit". Adding back what was removed, or removing what was added, cancels the earlier line.
+- **Log Today's Exercise:** shows only the selected day, with the same swap, add and remove controls.
+  - **Boxes:** each exercise has Sets, Reps and Weight (lb). The grey placeholder in each box is the last saved result **of the exercise currently in that row** (by exercise id, so it follows swaps and adds), or "–" if it was never logged.
+  - **Drafts:** typed numbers are kept per person and date, so they survive redraws and reloads.
+  - **Save Logged Day** (one click, no confirm) saves under the **date of the selected weekday** in this week:
+    - an exercise with Reps and Weight both 0 or blank is skipped
+    - if either is above 0, it's stored
+    - a blank Sets box stores the planned sets
+    - limits: sets 1–20 and reps 0–100 (whole numbers), weight 0–2000 lb
+    - nothing filled in shows a message instead of saving
+  - **A saved day is final** in both modes: it shows "Logged ✓", lines like "3 sets × 8 reps · 135 lb" or "Skipped", and no swap, add, remove or Save controls.
+- **Rules for editing a day** (one shared guard, `changeableSession()`): only the selected day of the current week, and never a logged day.
+  - no adding on rest days
+  - a workout keeps at least one exercise
+  - no duplicate exercise in a day
+  - no confirm on Remove
+
+### Data on the device (localStorage, per profile)
+- `flexweek:week:<profileId>`: base workout (unchanged).
+- `flexweek:workouts:<profileId>:<monday>`: this week's record. Hand edits add `addReason` on exercises and `changes` entries `{ kind: 'manual', action: 'add'|'remove', day, exerciseId, text }`.
+- `flexweek:history:<profileId>` → `{ version: 1, days: { '<date>': { week, day, savedAt, exercises: [{ id, name, sets, reps, weight }] } } }`. A date can't be saved twice.
+- `flexweek:draft:<profileId>:<date>` → `{ '<exerciseId>': { sets, reps, weight } }` (typed text). Cleared on save.
+
+### Code map for these features
+- `prototype/history.js`: `dateOf`, `readResult` (box values to result, skipped or error), `createHistoryStore` (`loadDay`, `saveDay`, `lastResult`, `loadDraft`, `saveDraft`, `clearDraft`).
+- `prototype/coach.js`: new `addableExercises(equipment)` and `addExercise(id, equipment)`, next to `swapExercise`.
+- `prototype/index.html`:
+  - `mode` and `setMode()`; `renderResult()` draws the boxes, Save button, logged view, and Remove and Add controls
+  - `saveLoggedDay()`, `changeableSession()`, `noteEdit()`, `removeExercise()`
+  - `openWorkout()` keeps logged days and carries `manual` changes over when the base workout changes
+- Tests:
+  - `tests/modes.test.js`: modes, logging, add/remove, using a fake page on a fixed Friday
+  - `tests/history.test.js`
+  - `tests/swaps.test.js`: coach add helpers
+  - The test pages' fake `closest()` must honour its selector, because the `#week` click handler checks `[data-save-day]`, then `[data-remove]`, then `[data-info]`.
+
+### Plan, still to do (user's priorities; propose a plan with risks before each)
+1. **Separate screen for historicals** (user asked to keep this on the list): past logged days and weeks per person, read from `flexweek:history:<id>`. The grey placeholders don't replace it. Not designed yet.
+2. **Change this week's days only:** add or remove a workout day this week, and move a workout to another day, without touching the base workout. Design first: today `openWorkout()` compares the week to the base workout and rebuilds days that differ, so a week-only move would snap back on reload. The week record must remember the base it was built from. Open question for the user: if the base workout is edited after week-only changes, do the week-only changes stay? My recommendation was yes, with the base applying from next week. Adding exercises to a rest day was deliberately left for this step.
+3. **UI pass** ("improving the UI"):
+   - Log-mode hint still says "you can still swap its exercises" on a logged day
+   - Add menu needs search (~120 options)
+   - general polish; Chrome screenshots of the tab timed out last time, so the layout was checked through the page's code, not by eye
+4. **"Modify remaining workouts" button** (2026-11-13 entry below): partly overlaps with step 2. Revisit after it.
+5. **Whoop analytics** (new feature, later): Whoop uses OAuth with a client secret, which can't be hidden in this no-server app, so it needs a backend. Keep it for a later build.
+6. **Other pending items:**
+   - user review of the 42 unmatched wger exercises (`scripts/wger-matches.txt`, `-` lines; don't change them without the user)
+   - `docs/index.html` (Product Page) and AGENTS.md wording still say "base week" in places; AGENTS.md lists `history.js`
+   - Product Page and build log not updated for these features (nothing merged by request)
+   - Build 3 is due Mon Nov 23, 12:00 PM, and its log in `docs/index.html` is still blank
+
+### Known limits
+- Swapping an added exercise keeps the "Added X" line under the old name.
+- The coach doesn't recheck volume or recovery after hand edits.
+- All data is in one browser on one device; clearing site data loses history.
+- Chrome checks used an existing test profile on `http://127.0.0.1:8765`. That origin now has Monday 2026-11-16 logged and Wednesday edited (test data only).
+
+---
+
 ## 2026-11-16 — Claude Code: add or remove exercises, in both modes
 
 **Done (user approved the plan):**
