@@ -85,6 +85,9 @@
     .rest { color: var(--muted); }
     .chip { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 9px; border-radius: 999px; margin: 0 6px 4px 0; }
     .chip.session { background: var(--accent-soft); color: var(--accent); }
+    select.chip.session { width: auto; min-width: 0; max-width: 100%; font-family: inherit; line-height: inherit; border: 1px solid transparent; cursor: pointer; }
+    select.chip.session:hover { border-color: var(--accent); }
+    select.chip.session:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .chip.sport { background: var(--sport-soft); color: var(--sport); }
     .day > div { min-width: 0; }
     .exercise-table-wrap { max-width: 100%; overflow-x: auto; margin: 2px 0 10px; }
@@ -96,6 +99,25 @@
     .ex select { width: 100%; min-width: 120px; max-width: 100%; }
     .ex .meta { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
     .ex .sets { display: block; color: var(--muted); font-size: 12px; }
+    /* Two modes for "Your week": change this week's workouts, or log one day's workout. */
+    .mode-switch { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .mode-switch button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+    /* Logging: three boxes per exercise; the grey placeholder is the last logged result. */
+    .ex tr.has-log th, .ex tr.has-log td { border-bottom: none; padding-bottom: 0; }
+    .ex tr.log-row td { width: auto; padding-top: 4px; }
+    .log-boxes { display: flex; flex-wrap: wrap; gap: 10px; }
+    .log-box { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); }
+    .log-box input[type="number"] { width: 68px; padding: 5px 7px; }
+    .log-box input::placeholder { color: var(--muted); opacity: 0.7; }
+    @media (max-width: 480px) { .log-boxes { gap: 8px; } .log-box input[type="number"] { width: 56px; } }
+    .chip.logged { background: var(--sport-soft); color: var(--sport); }
+    /* Adding and removing exercises (selected day, this week only). */
+    .remove-btn { margin-left: 8px; padding: 1px 7px; font-size: 12px; color: var(--muted); vertical-align: middle; white-space: nowrap; }
+    .remove-btn:hover { color: #c0392b; border-color: #c0392b; }
+    .add-row { margin: -4px 0 12px; }
+    .add-row select { width: 100%; max-width: 320px; }
+    .logged-result { display: block; margin-top: 2px; font-size: 13px; font-weight: 600; }
+    .log-actions { margin-top: 4px; }
     /* Exercise info: an "i" in a circle beside each exercise name opens one shared bubble. */
     .info-btn {
       display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
@@ -136,6 +158,23 @@
     /* Onboarding: profile + picker */
     [hidden] { display: none !important; }
     .narrow { max-width: 520px; }
+    .profile-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+    .profile-layout.creating { max-width: 520px; grid-template-columns: minmax(0, 1fr); }
+    .history-list { max-height: 420px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+    .history-list ul { list-style: none; margin: 0; padding: 0; }
+    .history-list li { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .history-list li:last-child { border-bottom: none; }
+    .history-list time { display: block; font-weight: 600; }
+    .history-date { padding: 0; border: 0; color: var(--accent); text-align: left; text-decoration: underline; background: transparent; }
+    .history-dialog { width: min(560px, calc(100% - 32px)); max-height: 80vh; overflow-y: auto; padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); }
+    .history-dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+    .history-dialog header { display: flex; gap: 16px; justify-content: space-between; align-items: start; }
+    .history-dialog h2 { color: var(--text); text-transform: none; letter-spacing: normal; font-size: 18px; }
+    .history-exercises { padding-left: 22px; }
+    .history-exercises li { padding: 10px 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+    .history-exercises span { display: block; color: var(--muted); }
+    .history-list .empty { padding: 14px; margin: 0; }
+    @media (max-width: 820px) { .profile-layout { grid-template-columns: minmax(0, 1fr); } }
     .field { margin-bottom: 16px; }
     .field > .label { display: block; font-weight: 600; margin-bottom: 6px; }
     .optional { font-weight: 400; color: var(--muted); font-size: 13px; }
@@ -173,7 +212,8 @@
     </section>
 
     <!-- SCREEN: profile (first screen for a new user; also used to edit) -->
-    <section id="screen-profile" class="card narrow" hidden>
+    <section id="screen-profile" class="profile-layout creating" hidden>
+      <div class="card">
       <h2 id="profile-title">About you</h2>
       <p class="hint" style="margin:0 0 16px">Saved on this device only. No account, nothing sent anywhere.</p>
       <form id="profile-form" novalidate>
@@ -224,6 +264,12 @@
           <button id="profile-cancel" type="button" hidden>Cancel</button>
         </div>
       </form>
+      </div>
+      <aside id="profile-history" class="card" aria-labelledby="history-title" hidden style="margin-top:0">
+        <h2 id="history-title">Workout History</h2>
+        <p class="hint" style="margin:0 0 12px">Saved workouts for this profile, newest first. Stored on this device only.</p>
+        <div id="history-list" class="history-list" tabindex="0" role="region" aria-label="Saved workout dates and types"></div>
+      </aside>
     </section>
 
     <!-- SCREEN: base week (onboarding step 2; also used to edit) -->
@@ -241,7 +287,7 @@
         </div>
         <div id="wk-errors"></div>
         <div class="actions">
-          <button class="primary" type="submit">Save base week</button>
+          <button class="primary" type="submit">Save base workout</button>
           <button id="week-cancel" type="button" hidden>Cancel</button>
         </div>
       </form>
@@ -252,7 +298,6 @@
     <div class="profile-bar">
       <div class="who" id="who"></div>
       <div class="actions" style="margin:0">
-        <button id="edit-week-bar" type="button">Edit base week</button>
         <button id="edit-profile" type="button">Edit profile</button>
         <button id="switch-profile" type="button">Switch person</button>
       </div>
@@ -262,26 +307,30 @@
       <!-- INPUTS -->
       <div>
         <div class="card">
-          <h2>1 · Base weekly plan</h2>
+          <h2>1 · Base workout</h2>
           <div id="plan"></div>
-          <button id="edit-week" type="button">Edit base week</button>
+          <button id="edit-week" type="button">Edit Base Workout</button>
         </div>
 
-<p class="hint">Saving a new base week also updates this week. Days whose session didn't change keep their exercise swaps.</p>
+<p class="hint">Your base workout is your usual week. Saving a new one changes this week and every week after it. Days whose session didn't change keep their exercise swaps.</p>
       </div>
 
       <!-- OUTPUT -->
       <div>
         <div class="card">
           <h2>Your week</h2>
+          <div class="mode-switch" role="group" aria-label="What do you want to do with this week?">
+            <button id="mode-modify" type="button" aria-pressed="true">Modify Current Week</button>
+            <button id="mode-log" type="button" aria-pressed="false">Log Today's Exercise</button>
+          </div>
           <label for="workout-day">Current workout day</label>
           <select id="workout-day"></select>
           <p id="week-context" class="hint"></p>
-          <p class="hint">Select any weekday to follow its routine and switch its exercises, regardless of today's date. Changes stay with that day's workout.</p>
+          <p id="mode-hint" class="hint">Select any weekday to follow its routine and switch its exercises, regardless of today's date. Changes stay with this week only.</p>
           <p id="workout-storage-error" class="error" role="alert" hidden></p>
           <div id="week"><p class="empty">Your saved workouts will appear here.</p></div>
         </div>
-        <div class="card">
+        <div id="changes-card" class="card">
           <h2>What changed &amp; why</h2>
           <div id="changes"><p class="empty">Changes will appear here.</p></div>
         </div>
@@ -302,19 +351,49 @@
     <div id="exercise-info-gif" class="info-gif"></div>
   </div>
 
+  <dialog id="history-dialog" class="history-dialog" aria-labelledby="history-dialog-title" aria-describedby="history-dialog-type">
+    <header>
+      <h2 id="history-dialog-title"></h2>
+      <button id="history-dialog-close" type="button" autofocus>Close</button>
+    </header>
+    <p id="history-dialog-type"></p>
+    <div id="history-dialog-results"></div>
+  </dialog>
+
   <script src="exercises.js"></script>
   <script src="coach.js"></script>
   <script src="workoutweek.js"></script>
   <script src="wger.js"></script>
+  <script src="history.js"></script>
   <script>
-    const { adjustWeek, exerciseAlternatives, swapExercise, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT } = window.FlexWeek;
+    const { adjustWeek, exerciseAlternatives, swapExercise, addableExercises, addExercise, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT } = window.FlexWeek;
+    const NO_CHANGES = 'Your base plan already fits this week. No changes needed.';
     let currentResult = null;
     let resultEquipment = null;
     const WW = window.FlexWeekWorkoutWeek;
+    const H = window.FlexWeekHistory;
     let workoutStore = null;
     let workoutProfile = null;
     let workoutRecord = null;
     let selectedDay = WW.calendar().day;
+    // Logged results (history.js). drafts: numbers typed but not saved yet, by date, mirrored to storage.
+    let historyStore = null;
+    let drafts = {};
+    let logError = ''; // why the last "Save Logged Day" failed, shown under the selected day
+    const dayDate = (dayIndex) => H.dateOf(workoutRecord.week, dayIndex);
+    const loggedDay = (dayIndex) => historyStore.loadDay(workoutProfile, dayDate(dayIndex));
+    function draftFor(date) {
+      if (!drafts[date]) drafts[date] = historyStore.loadDraft(workoutProfile, date);
+      return drafts[date];
+    }
+    const esc = (v) => String(v).replace(/[&"<>]/g, (c) => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' }[c]));
+    // 'modify': change this week's workouts (swaps). 'log': open the selected day to record it.
+    // Kept in memory only, so it survives redraws; a page reload starts in 'modify'.
+    let mode = 'modify';
+    const MODE_HINTS = {
+      modify: "Select any weekday to follow its routine and switch its exercises, regardless of today's date. Changes stay with this week only.",
+      log: "Pick the day you're training. Only that day's workout is shown, and you can still swap its exercises.",
+    };
 
     const state = {
       plan: [{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }],
@@ -343,31 +422,75 @@
         $('changes').innerHTML = '';
         return;
       }
+      const log = mode === 'log';
       $('week').innerHTML = '<div class="week">' + r.week.map((w, dayIndex) => {
+        if (log && dayIndex !== selectedDay) return ''; // logging shows only the selected day
         const parts = [];
-        const editable = WW.canEdit(workoutRecord.week, selectedDay, dayIndex);
-        if (dayIndex === selectedDay) parts.push('<p class="hint">Selected workout</p>');
+        const logged = loggedDay(dayIndex); // a saved day is final: no swaps, no new numbers
+        const editable = !logged && WW.canEdit(workoutRecord.week, selectedDay, dayIndex);
+        const logging = log && !logged && w.sessions.length > 0; // show the boxes and the Save button
+        const draft = logging ? draftFor(dayDate(dayIndex)) : null;
+        if (!log && dayIndex === selectedDay) parts.push('<p class="hint">Selected workout</p>');
+        if (logged) parts.push('<span class="chip logged">Logged ✓</span>');
+        if (logging) parts.push('<p class="hint">Grey numbers are your last logged result for that exercise. Reps and Weight both 0 or blank skip the exercise.</p>');
         let exerciseNumber = 0;
+        // Adding: any exercise the equipment allows that isn't in this day yet, grouped by main muscle.
+        const inDay = new Set(w.sessions.flatMap((s) => s.exercises.map((e) => e.id)));
+        const addMenu = (sessionIndex, s) => {
+          const groups = new Map();
+          addableExercises(resultEquipment).filter((e) => !inDay.has(e.id)).forEach((e) => {
+            const muscle = e.primaryMuscles[0];
+            if (!groups.has(muscle)) groups.set(muscle, []);
+            groups.get(muscle).push(`<option value="${esc(e.id)}">${e.name}</option>`);
+          });
+          return `<div class="add-row"><select data-add-day="${dayIndex}" data-add-session="${sessionIndex}" aria-label="Add an exercise to ${w.day} ${s.label}">
+            <option value="">+ Add exercise…</option>
+            ${[...groups].map(([muscle, opts]) => `<optgroup label="${muscle[0].toUpperCase() + muscle.slice(1)}">${opts.join('')}</optgroup>`).join('')}
+          </select></div>`;
+        };
         w.activities.forEach((a) => parts.push(`<span class="chip sport">${a}</span>`));
         w.sessions.forEach((s, sessionIndex) => {
-          parts.push(`<span class="chip session">${s.label}</span>`);
+          parts.push(!log && editable
+            ? `<select class="chip session" data-type-day="${dayIndex}" aria-label="Change ${w.day} workout type" title="Change this date’s workout type. Replaces exercise edits and clears unsaved logging numbers.">${Object.entries(SESSION_TYPES).map(([type, info]) => `<option value="${type}"${type === s.type ? ' selected' : ''}>${info.name}</option>`).join('')}</select>`
+            : `<span class="chip session">${s.label}</span>`);
           parts.push(`<div class="exercise-table-wrap"><table class="ex" aria-label="${w.day} ${s.label} exercises"><thead><tr><th scope="col">Exercise #</th><th scope="col">Exercise name</th><th scope="col">Switch to</th></tr></thead><tbody>` + s.exercises.map((e, exerciseIndex) => {
             const choices = exerciseAlternatives(e.id, resultEquipment);
-            const control = !editable ? '<small>Read-only</small>' : choices.length
+            let result = ''; // a logged day's numbers, under the name
+            let boxes = '';  // while logging: the three boxes, in their own full-width row
+            if (logged) {
+              const x = logged.exercises.find((done) => done.id === e.id);
+              result = `<span class="logged-result">${x ? `${x.sets} sets × ${x.reps} reps · ${x.weight} lb` : 'Skipped'}</span>`;
+            } else if (logging) {
+              const last = historyStore.lastResult(workoutProfile, e.id);
+              const typed = draft[e.id] || {};
+              const box = (field, label) => `<label class="log-box">${label}<input type="number" inputmode="decimal" min="0" data-log-field="${field}" data-log-exercise="${esc(e.id)}" value="${esc(typed[field] || '')}" placeholder="${last ? last[field] : '–'}" aria-label="${label} for ${e.name}"></label>`;
+              boxes = `<tr class="log-row"><td></td><td colspan="2"><div class="log-boxes">${box('sets', 'Sets')}${box('reps', 'Reps')}${box('weight', 'Weight (lb)')}</div></td></tr>`;
+            }
+            const control = logged ? '<small>Logged</small>' : !editable ? '<small>Read-only</small>' : choices.length
               ? `<select data-swap-day="${dayIndex}" data-swap-session="${sessionIndex}" data-swap-exercise="${exerciseIndex}" aria-label="Swap ${e.name}">
                   <option value="">Swap exercise…</option>
                   ${choices.map((a) => `<option value="${a.id}">${a.name}</option>`).join('')}
                 </select>`
               : '<small>No alternatives available</small>';
             const info = `<button type="button" class="info-btn" data-info="${dayIndex}-${sessionIndex}-${exerciseIndex}" aria-label="About ${e.name}" aria-expanded="false" aria-controls="exercise-info">i</button>`;
-            return `<tr><th scope="row">${++exerciseNumber}</th><td>${e.name}${info}<span class="sets">${e.sets} sets</span>${e.swapReason ? `<p class="meta">${e.swapReason}</p>` : ''}</td><td>${control}</td></tr>`;
+            // A workout keeps at least one exercise, so its last one has no Remove button.
+            const remove = editable && s.exercises.length > 1
+              ? `<button type="button" class="remove-btn" data-remove="${dayIndex}-${sessionIndex}-${exerciseIndex}" aria-label="Remove ${e.name}">✕ Remove</button>` : '';
+            const reason = e.swapReason || e.addReason;
+            return `<tr${boxes ? ' class="has-log"' : ''}><th scope="row">${++exerciseNumber}</th><td>${e.name}${info}${remove}<span class="sets">${e.sets} sets</span>${reason ? `<p class="meta">${reason}</p>` : ''}${result}</td><td>${control}</td></tr>${boxes}`;
           }).join('') + '</tbody></table></div>');
+          if (editable) parts.push(addMenu(sessionIndex, s));
         });
-        if (!w.sessions.length && !w.activities.length) parts.push('<span class="rest">Rest</span>');
+        if (logging) {
+          if (logError) parts.push(`<p class="error" role="alert">${esc(logError)}</p>`);
+          parts.push(`<div class="log-actions"><button type="button" class="primary" data-save-day="${dayIndex}">Save Logged Day</button><p class="hint">Saving is final: this day's numbers and exercises can't be changed afterwards.</p></div>`);
+        }
+        if (log && logged) parts.push(`<p class="hint">This day is saved for ${dayDate(dayIndex)} and is final.</p>`);
+        if (!w.sessions.length && !w.activities.length) parts.push(`<span class="rest">${log ? 'Rest day. Nothing to log.' : 'Rest'}</span>`);
         return `<div class="day"><div class="day-name">${w.day}</div><div>${parts.join('')}</div></div>`;
       }).join('') + '</div>';
 
-      const tags = { merge: 'Merge', drop: 'Drop', move: 'Move', volume: 'Volume', equipment: 'Equipment', warning: 'Heads-up' };
+      const tags = { merge: 'Merge', drop: 'Drop', move: 'Move', volume: 'Volume', equipment: 'Equipment', warning: 'Heads-up', manual: 'Your edit' };
       const items = r.changes.map((c) =>
         `<li class="${c.kind}"><span class="tag">${tags[c.kind]}</span>${c.text.replace(/^Heads-up: /, '')}</li>`);
       const notes = r.notes.map((n) => `<li><span class="tag">Note</span>${n}</li>`);
@@ -384,25 +507,41 @@
       }
     }
 
-    function openWorkout() {
+    function openWorkout(resetTemporary = false) {
       const today = WW.calendar();
       selectedDay = today.day;
       workoutRecord = workoutStore.load(workoutProfile, today.week);
-      const fresh = adjustWeek({ basePlan: state.plan, daysAvailable: state.plan.length, activities: [], equipment: 'full' });
+      const fresh = adjustWeek({ basePlan: state.plan, daysAvailable: state.plan.length, activities: [], equipment: 'full', preserveDays: true });
       if (!workoutRecord) {
         workoutRecord = { version: 1, week: today.week, equipment: 'full', result: fresh };
       } else {
-        // An edited base week updates this week too. Days whose sessions are unchanged keep their swaps.
+        // An edited base week updates this week too. Days whose sessions are unchanged keep their swaps
+        // and added/removed exercises, and logged days stay exactly as they were done.
         const types = (d) => d.sessions.map((s) => s.type).join(',');
         const old = workoutRecord.result;
-        if (old.week.some((d, i) => types(d) !== types(fresh.week[i]))) {
-          fresh.week = fresh.week.map((d, i) => (types(d) === types(old.week[i]) ? old.week[i] : d));
-          if (fresh.week.some((d) => d.sessions.some((s) => s.exercises.some((e) => e.swapReason)))) {
-            fresh.notes = fresh.notes.filter((n) => n !== 'Your base plan already fits this week. No changes needed.');
+        const temporary = Array.isArray(workoutRecord.temporaryDays) ? workoutRecord.temporaryDays : [];
+        const baseChanged = resetTemporary || (workoutRecord.basePlan && JSON.stringify(workoutRecord.basePlan) !== JSON.stringify(state.plan));
+        const keep = (i) => Boolean(historyStore.loadDay(workoutProfile, H.dateOf(today.week, i))) ||
+          (temporary.includes(i) ? !baseChanged : types(fresh.week[i]) === types(old.week[i]));
+        for (const i of temporary) {
+          if (!keep(i)) {
+            const date = H.dateOf(today.week, i);
+            delete drafts[date];
+            historyStore.clearDraft(workoutProfile, date);
+          }
+        }
+        if (baseChanged) workoutRecord.temporaryDays = [];
+        if (old.week.some((d, i) => !keep(i))) {
+          fresh.week = fresh.week.map((d, i) => (keep(i) ? old.week[i] : d));
+          fresh.changes = fresh.changes.concat(old.changes.filter((c) => c.kind === 'manual' && keep(c.day)));
+          if (fresh.changes.some((c) => c.kind === 'manual') ||
+            fresh.week.some((d) => d.sessions.some((s) => s.exercises.some((e) => e.swapReason)))) {
+            fresh.notes = fresh.notes.filter((n) => n !== NO_CHANGES);
           }
           workoutRecord.result = fresh;
         }
       }
+      workoutRecord.basePlan = state.plan.map((s) => ({ ...s }));
       currentResult = workoutRecord.result;
       resultEquipment = workoutRecord.equipment;
       saveWorkout();
@@ -411,29 +550,148 @@
       renderResult(currentResult);
     }
 
+    function setMode(next) {
+      mode = next;
+      $('mode-modify').setAttribute('aria-pressed', String(mode === 'modify'));
+      $('mode-log').setAttribute('aria-pressed', String(mode === 'log'));
+      $('mode-hint').textContent = MODE_HINTS[mode];
+      $('changes-card').hidden = mode === 'log';
+      logError = '';
+      if (!workoutRecord) return;
+      if (workoutRecord.week !== WW.calendar().week) openWorkout(); // a new week started while the page was open
+      else renderResult(currentResult);
+    }
+    $('mode-modify').addEventListener('click', () => setMode('modify'));
+    $('mode-log').addEventListener('click', () => setMode('log'));
+
     $('workout-day').addEventListener('change', (event) => {
       if (!workoutRecord) return;
       if (workoutRecord.week !== WW.calendar().week) { openWorkout(); return; }
       selectedDay = Number(event.target.value);
+      logError = '';
       renderResult(currentResult);
     });
 
+    // Typing in a box keeps the number as a draft (no redraw, so the cursor stays put).
+    $('week').addEventListener('input', (event) => {
+      const t = event.target;
+      if (!t.dataset || t.dataset.logField === undefined || !workoutRecord) return;
+      const date = dayDate(selectedDay);
+      const draft = draftFor(date);
+      draft[t.dataset.logExercise] = { ...draft[t.dataset.logExercise], [t.dataset.logField]: t.value };
+      try { historyStore.saveDraft(workoutProfile, date, draft); } catch (_) { /* kept in memory while the page is open */ }
+    });
+
+    // "Save Logged Day": stores every exercise with Reps or Weight above 0, then the day is final.
+    function saveLoggedDay(dayIndex) {
+      if (workoutRecord.week !== WW.calendar().week) { openWorkout(); return; }
+      const date = dayDate(dayIndex);
+      if (historyStore.loadDay(workoutProfile, date)) { renderResult(currentResult); return; }
+      const draft = draftFor(date);
+      const exercises = [];
+      for (const s of currentResult.week[dayIndex].sessions) {
+        for (const e of s.exercises) {
+          const r = H.readResult(draft[e.id], e.sets);
+          if (!r.ok) { logError = `${e.name}: ${r.error}`; renderResult(currentResult); return; }
+          if (r.result) exercises.push({ id: e.id, name: e.name, ...r.result });
+        }
+      }
+      if (!exercises.length) {
+        logError = 'Enter Reps or Weight for at least one exercise before saving.';
+        renderResult(currentResult);
+        return;
+      }
+      let saved = false;
+      const workoutTypes = currentResult.week[dayIndex].sessions.map((s) => s.type);
+      try { saved = historyStore.saveDay(workoutProfile, date, { week: workoutRecord.week, day: dayIndex, workoutTypes, exercises }); } catch (_) { saved = false; }
+      if (!saved) {
+        logError = "This day couldn't be saved on this device. Your numbers are still in the boxes.";
+        renderResult(currentResult);
+        return;
+      }
+      delete drafts[date];
+      try { historyStore.clearDraft(workoutProfile, date); } catch (_) { /* the day is saved; a leftover draft is harmless */ }
+      logError = '';
+      renderResult(currentResult);
+    }
+
+    // Swaps, adds and removes change only the selected day of this week, and never a logged day.
+    // Returns that day's session, or null (after redrawing) when the change isn't allowed.
+    function changeableSession(day, sessionIndex) {
+      if (workoutRecord.week !== WW.calendar().week) { openWorkout(); return null; }
+      if (!WW.canEdit(workoutRecord.week, selectedDay, day) || loggedDay(day)) { renderResult(currentResult); return null; }
+      return currentResult.week[day]?.sessions[sessionIndex] || null;
+    }
+
+    // Lists a hand edit under "What changed & why". Adding back what was removed (or removing what was added)
+    // cancels the earlier line instead of adding a second one.
+    function noteEdit(action, day, session, exercise) {
+      const undo = currentResult.changes.findIndex((c) => c.kind === 'manual' && c.day === day &&
+        c.exerciseId === exercise.id && c.action !== action);
+      if (undo >= 0) currentResult.changes.splice(undo, 1);
+      else currentResult.changes.push({ kind: 'manual', action, day, exerciseId: exercise.id,
+        text: `${action === 'add' ? 'Added' : 'Removed'} ${exercise.name} ${action === 'add' ? 'to' : 'from'} ${DAYS[day]} ${session.label}.` });
+      currentResult.notes = currentResult.notes.filter((n) => n !== NO_CHANGES);
+    }
+
     $('week').addEventListener('change', (event) => {
       const t = event.target;
-      if (t.dataset.swapDay === undefined || !t.value || !currentResult) return;
-      if (workoutRecord.week !== WW.calendar().week) { openWorkout(); return; }
-      const day = Number(t.dataset.swapDay);
-      if (!WW.canEdit(workoutRecord.week, selectedDay, day)) { renderResult(currentResult); return; }
-      const session = currentResult.week[day]?.sessions[Number(t.dataset.swapSession)];
-      if (!session) return;
-      const index = Number(t.dataset.swapExercise);
-      const replacement = swapExercise(session.exercises[index], t.value, resultEquipment);
-      if (!replacement) return;
-      session.exercises[index] = replacement;
-      currentResult.notes = currentResult.notes.filter((n) => n !== 'Your base plan already fits this week. No changes needed.');
+      if (!t.value || !currentResult || !t.dataset) return;
+      if (t.dataset.typeDay !== undefined) {
+        const day = Number(t.dataset.typeDay);
+        const session = changeableSession(day, 0);
+        if (!session || mode !== 'modify' || !Object.hasOwn(SESSION_TYPES, t.value)) return;
+        const replacement = adjustWeek({ basePlan: [{ type: t.value, day }], daysAvailable: 1,
+          activities: [], equipment: resultEquipment, preserveDays: true }).week[day].sessions;
+        const date = dayDate(day);
+        // Clear persistent numbers before replacing the routine; a failed write leaves the routine intact.
+        try { historyStore.clearDraft(workoutProfile, date); } catch (_) {
+          $('workout-storage-error').textContent = 'Could not clear unsaved numbers. The workout type was not changed.';
+          $('workout-storage-error').hidden = false;
+          return;
+        }
+        delete drafts[date];
+        logError = '';
+        currentResult.week[day].sessions = replacement;
+        currentResult.changes = currentResult.changes.filter((c) => c.day !== day);
+        currentResult.changes.push({ kind: 'manual', action: 'type', day,
+          text: `Changed ${DAYS[day]} to ${SESSION_TYPES[t.value].name} with default exercises, for this date only.` });
+        currentResult.notes = currentResult.notes.filter((n) => n !== NO_CHANGES);
+        workoutRecord.temporaryDays = [...new Set([...(workoutRecord.temporaryDays || []), day])];
+      } else if (t.dataset.swapDay !== undefined) {
+        const day = Number(t.dataset.swapDay);
+        const session = changeableSession(day, Number(t.dataset.swapSession));
+        if (!session) return;
+        const index = Number(t.dataset.swapExercise);
+        const replacement = swapExercise(session.exercises[index], t.value, resultEquipment);
+        if (!replacement) return;
+        session.exercises[index] = replacement;
+        currentResult.notes = currentResult.notes.filter((n) => n !== NO_CHANGES);
+      } else if (t.dataset.addDay !== undefined) {
+        const day = Number(t.dataset.addDay);
+        const session = changeableSession(day, Number(t.dataset.addSession));
+        if (!session) return;
+        const added = addExercise(t.value, resultEquipment);
+        // The same exercise can't be in a day twice: its logged numbers are kept by exercise.
+        const already = currentResult.week[day].sessions.some((s) => s.exercises.some((e) => e.id === t.value));
+        if (!added || already) { renderResult(currentResult); return; }
+        session.exercises.push(added);
+        noteEdit('add', day, session, added);
+      } else {
+        return;
+      }
       saveWorkout();
       renderResult(currentResult);
     });
+
+    function removeExercise(day, sessionIndex, index) {
+      const session = changeableSession(day, sessionIndex);
+      if (!session || session.exercises.length < 2 || !session.exercises[index]) return; // keep at least one
+      const [removed] = session.exercises.splice(index, 1);
+      noteEdit('remove', day, session, removed);
+      saveWorkout();
+      renderResult(currentResult);
+    }
 
     // ---- Exercise info bubble ----
     // The description comes from wger (see wger.js) when the catalog has a wgerId for the exercise.
@@ -539,6 +797,10 @@
     }
 
     $('week').addEventListener('click', (event) => {
+      const save = event.target.closest('[data-save-day]');
+      if (save) { saveLoggedDay(Number(save.dataset.saveDay)); return; }
+      const remove = event.target.closest('[data-remove]');
+      if (remove) { removeExercise(...remove.dataset.remove.split('-').map(Number)); return; }
       const button = event.target.closest('[data-info]');
       if (!button) return;
       if (button === infoButton) closeInfo(false);
@@ -560,12 +822,15 @@
       }
     });
 
-    function setBasePlan(week, profileId, storage) {
+    function setBasePlan(week, profileId, storage, resetTemporary = false) {
       state.plan = week.map((s) => ({ type: s.type, day: s.day }));
       workoutProfile = profileId;
       workoutStore = WW.createWorkoutStore(storage);
+      historyStore = H.createHistoryStore(storage);
+      drafts = {};
+      logError = '';
       renderInputs();
-      openWorkout();
+      openWorkout(resetTemporary);
     }
 
     renderInputs();
@@ -602,6 +867,7 @@
         `<label class="radio"><input type="radio" name="goal" value="${k}" /> <span>${v}</span></label>`).join('');
 
       function show(screen) {
+        if ($('history-dialog').open) $('history-dialog').close();
         ['picker', 'profile', 'week', 'main'].forEach((s) => { $('screen-' + s).hidden = s !== screen; });
       }
 
@@ -657,12 +923,56 @@
         updateBmi();
       }
 
+      function historyDate(date) {
+        return new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function historyType(day) {
+        const types = (Array.isArray(day.workoutTypes) ? day.workoutTypes : [])
+          .map((type) => SESSION_TYPES[type]?.name).filter(Boolean);
+        return types.join(' + ') || 'Logged workout';
+      }
+
+      function openHistoryDay(date) {
+        if (!editingId) return;
+        const day = H.createHistoryStore(storage).loadDay(editingId, date);
+        if (!day) return;
+        $('history-dialog-title').textContent = historyDate(date);
+        $('history-dialog-type').textContent = historyType(day);
+        const completed = day.exercises.filter((exercise) => exercise.reps > 0);
+        $('history-dialog-results').innerHTML = completed.length
+          ? '<ul class="history-exercises">' + completed.map((e) =>
+            `<li><strong>${esc(e.name)}</strong><span>${esc(e.sets)} sets &times; ${esc(e.reps)} reps &middot; ${esc(e.weight)} lb</span></li>`).join('') + '</ul>'
+          : '<p class="empty">No exercises with more than 0 reps were saved for this day.</p>';
+        $('history-dialog').showModal();
+      }
+
+      $('history-list').addEventListener('click', (event) => {
+        const button = event.target.closest('[data-history-date]');
+        if (button) openHistoryDay(button.dataset.historyDate);
+      });
+      $('history-dialog-close').addEventListener('click', () => $('history-dialog').close());
+      // Native dialog handles Escape, keyboard focus and returning focus to the date.
+      $('history-dialog').addEventListener('click', (event) => {
+        if (event.target !== $('history-dialog')) return;
+        const rect = $('history-dialog').getBoundingClientRect();
+        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) {
+          $('history-dialog').close();
+        }
+      });
+
       function openProfile(id) {
         editingId = id || null;
         const rec = id ? store.loadProfile(id) : null;
         $('profile-title').textContent = rec ? 'Edit profile' : 'About you';
         $('profile-cancel').hidden = !rec && store.listProfiles().length === 0;
         fillForm(rec ? rec.profile : null);
+        $('screen-profile').classList.toggle('creating', !rec);
+        $('profile-history').hidden = !rec;
+        const days = rec ? H.createHistoryStore(storage).listDays(id) : [];
+        $('history-list').innerHTML = days.length ? '<ul>' + days.map((day) => {
+          return `<li><button class="history-date" type="button" data-history-date="${esc(day.date)}" aria-haspopup="dialog"><time datetime="${esc(day.date)}">${esc(historyDate(day.date))}</time></button><span class="hint">${esc(historyType(day))}</span></li>`;
+        }).join('') + '</ul>' : '<p class="empty">No workouts saved yet. Save a logged day in Your week to see it here.</p>';
         show('profile');
       }
 
@@ -685,7 +995,7 @@
 
       function openWeek(id) {
         const saved = weekStore.loadWeek(id);
-        $('week-title').textContent = saved ? 'Edit base week' : 'Your usual week';
+        $('week-title').textContent = saved ? 'Edit base workout' : 'Your usual week';
         $('week-cancel').hidden = !saved;
         weekRows = saved || BW.defaultWeek(3);
         renderWeekRows();
@@ -720,18 +1030,17 @@
           $('wk-errors').innerHTML = r.errors.map((m) => `<p class="field-error" role="alert">${esc(m)}</p>`).join('');
           return;
         }
-        openMain(id);
+        openMain(id, true);
       });
       $('week-cancel').addEventListener('click', () => openMain(store.getCurrentId()));
       $('edit-week').addEventListener('click', () => openWeek(store.getCurrentId()));
-      $('edit-week-bar').addEventListener('click', () => openWeek(store.getCurrentId()));
 
       // Planner. A person without a base week yet (new, or saved before step 2 existed) sets one up first.
-      function openMain(id) {
+      function openMain(id, resetTemporary = false) {
         store.setCurrentId(id);
         const week = weekStore.loadWeek(id);
         if (!week) { openWeek(id); return; }
-        setBasePlan(week, id, storage);
+        setBasePlan(week, id, storage, resetTemporary);
         const p = store.loadProfile(id).profile;
         const value = bmi(p.heightCm, p.weightKg);
         $('who').innerHTML = `<strong>${esc(p.nickname)}</strong> · ${GOALS[p.goal]} · BMI ${value.toFixed(1)}`;

@@ -245,8 +245,11 @@
     return best;
   }
 
-  function schedule(list, actsByDay) {
-    const days = bestDays(list, actsByDay);
+  function schedule(list, actsByDay, preserveDays = false) {
+    // The saved-workout screen honors explicit weekdays; constraint planning still optimizes them.
+    const baseDays = list.map((s) => s.baseDay);
+    const days = preserveDays && baseDays.every((d) => d !== null) && new Set(baseDays).size === list.length
+      ? baseDays : bestDays(list, actsByDay);
     list.forEach((s, i) => { s.day = days[i]; });
 
     list.forEach((s) => {
@@ -360,6 +363,7 @@
   /**
    * input = {
    *   basePlan: [{ type: 'upper', day: 0 }, ...]   // day: 0=Mon … 6=Sun, or null
+   *   preserveDays: true                         // honor distinct explicit weekdays, retaining warnings
    *   daysAvailable: 3,
    *   activities: [{ type: 'soccer', day: 3 }, ...],
    *   equipment: 'full' | 'home' | 'limited',
@@ -393,7 +397,7 @@
 
     const actsByDay = DAYS.map((_, d) => activities.filter((a) => a.day === d));
     if (list.length) {
-      schedule(list, actsByDay);
+      schedule(list, actsByDay, input.preserveDays === true);
       adjustVolume(list, activities);
       applyEquipment(list, equipment);
     }
@@ -437,7 +441,20 @@
     };
   }
 
-  const api = { adjustWeek, exerciseAlternatives, swapExercise, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT };
+  // Exercises a person can add to a day by hand: every catalog exercise their equipment allows, in catalog order.
+  function addableExercises(equipment) {
+    const available = AVAILABLE[equipment];
+    return available ? CATALOG.EXERCISES.filter((e) => CATALOG.canDo(e, available)) : [];
+  }
+
+  // A hand-added exercise, built like the coach's own (base sets, its muscle group), marked as the person's choice.
+  function addExercise(id, equipment) {
+    const e = addableExercises(equipment).find((x) => x.id === id);
+    if (!e) return null;
+    return { id: e.id, name: e.name, group: groupOf(e), sets: BASE_SETS, addReason: 'Added by you.' };
+  }
+
+  const api = { adjustWeek, exerciseAlternatives, swapExercise, addableExercises, addExercise, DAYS, SESSION_TYPES, ACTIVITIES, EQUIPMENT };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FlexWeek = api;
 })(this);
