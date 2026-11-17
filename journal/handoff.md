@@ -1,5 +1,16 @@
 # Agent handoff log
 
+## 2026-11-16 — Codex: Workout History panel, Step 1
+
+- User approved Step 1 only: right side of Edit Profile has a scrollable saved-date/type list, newest first, scoped to the edited profile. At widths <=820px it stacks below the form. Hidden when creating a profile; empty state for no logs.
+- Added history store `listDays()`. Future logged days preserve `workoutTypes`; legacy dates show "Logged workout" rather than inferring a type from the current base plan.
+- Step 2 remains unapproved and unimplemented: clickable dates and a read-only popup with the saved routine. Old records do not retain skipped exercises or change explanations.
+- Validation: `node --test tests/`: 113 pass, 0 fail; `git diff --check` passed. Storage tests cover ordering, profile isolation, legacy types and corrupt storage.
+- Chrome reloaded the updated file, but visual checks could not finish: browser host unavailable; native click failed with unavailable geometry and subsequent attempt was interrupted by detected user input. Stopped after two attempts per repo rule. Desktop/mobile layout, populated list and scrolling still need visual checks.
+- Work stays local. Next: user reviews Step 1; resolve visual verification before requesting Step 2 approval.
+
+---
+
 Shared notes so work can move between Claude Code and Codex. Newest entry on top.
 Agents: read the latest entry before starting, and add a new one before you stop.
 

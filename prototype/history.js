@@ -73,6 +73,15 @@
       return d && Array.isArray(d.exercises) ? { ...d, exercises: d.exercises.filter(validEntry) } : null;
     }
 
+    // Newest workout dates first; never infer an old workout's type from today's plan.
+    function listDays(profileId) {
+      return Object.keys(read(profileId).days).filter((date) => DATE.test(date))
+        .sort().reverse().flatMap((date) => {
+          const day = loadDay(profileId, date);
+          return day ? [{ date, ...day }] : [];
+        });
+    }
+
     // Saves one finished day: { week, day, exercises: [{ id, name, sets, reps, weight }] }.
     // Returns false and writes nothing when the date is already saved (final), the date is malformed,
     // or no exercise is valid.
@@ -82,6 +91,9 @@
         .map(({ id, name, sets, reps, weight }) => ({ id, name, sets, reps, weight }));
       if (!DATE.test(date) || h.days[date] || !exercises.length) return false;
       h.days[date] = { week: day.week, day: day.day, savedAt: new Date().toISOString(), exercises };
+      if (Array.isArray(day.workoutTypes)) {
+        h.days[date].workoutTypes = day.workoutTypes.filter((type) => typeof type === 'string');
+      }
       storage.setItem(key(profileId), JSON.stringify(h));
       return true;
     }
@@ -112,7 +124,7 @@
       storage.removeItem(draftKey(profileId, date));
     }
 
-    return { loadDay, saveDay, lastResult, loadDraft, saveDraft, clearDraft };
+    return { loadDay, listDays, saveDay, lastResult, loadDraft, saveDraft, clearDraft };
   }
 
   const api = { LIMITS, dateOf, readResult, createHistoryStore };

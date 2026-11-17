@@ -9,6 +9,22 @@ const memory = () => {
 const bench = { id: 'Barbell_Bench_Press', name: 'Barbell Bench Press' };
 const dbBench = { id: 'Dumbbell_Bench_Press', name: 'Dumbbell Bench Press' };
 
+test('history list orders dates, isolates profiles and preserves workout types without guessing legacy types', () => {
+  const storage = memory();
+  const store = createHistoryStore(storage);
+  const day = { week: '2026-11-16', day: 0, exercises: [{ ...bench, sets: 3, reps: 8, weight: 135 }] };
+  store.saveDay('a', '2026-11-16', day);
+  store.saveDay('a', '2026-11-20', { ...day, day: 4, workoutTypes: ['upper'] });
+  store.saveDay('b', '2026-11-21', day);
+  const list = store.listDays('a');
+  assert.deepEqual(list.map((d) => d.date), ['2026-11-20', '2026-11-16']);
+  assert.deepEqual(list[0].workoutTypes, ['upper']);
+  assert.equal(list[1].workoutTypes, undefined);
+  assert.deepEqual(store.listDays('unknown'), []);
+  storage.setItem('flexweek:history:broken', '{');
+  assert.deepEqual(store.listDays('broken'), []);
+});
+
 test('dateOf gives the date of the picked weekday, across month and year ends', () => {
   assert.equal(dateOf('2026-11-16', 0), '2026-11-16');
   assert.equal(dateOf('2026-11-16', 4), '2026-11-20');

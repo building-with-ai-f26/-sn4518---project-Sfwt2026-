@@ -155,6 +155,15 @@
     /* Onboarding: profile + picker */
     [hidden] { display: none !important; }
     .narrow { max-width: 520px; }
+    .profile-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+    .profile-layout.creating { max-width: 520px; grid-template-columns: minmax(0, 1fr); }
+    .history-list { max-height: 420px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+    .history-list ul { list-style: none; margin: 0; padding: 0; }
+    .history-list li { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .history-list li:last-child { border-bottom: none; }
+    .history-list time { display: block; font-weight: 600; }
+    .history-list .empty { padding: 14px; margin: 0; }
+    @media (max-width: 820px) { .profile-layout { grid-template-columns: minmax(0, 1fr); } }
     .field { margin-bottom: 16px; }
     .field > .label { display: block; font-weight: 600; margin-bottom: 6px; }
     .optional { font-weight: 400; color: var(--muted); font-size: 13px; }
@@ -192,7 +201,8 @@
     </section>
 
     <!-- SCREEN: profile (first screen for a new user; also used to edit) -->
-    <section id="screen-profile" class="card narrow" hidden>
+    <section id="screen-profile" class="profile-layout creating" hidden>
+      <div class="card">
       <h2 id="profile-title">About you</h2>
       <p class="hint" style="margin:0 0 16px">Saved on this device only. No account, nothing sent anywhere.</p>
       <form id="profile-form" novalidate>
@@ -243,6 +253,12 @@
           <button id="profile-cancel" type="button" hidden>Cancel</button>
         </div>
       </form>
+      </div>
+      <aside id="profile-history" class="card" aria-labelledby="history-title" hidden style="margin-top:0">
+        <h2 id="history-title">Workout History</h2>
+        <p class="hint" style="margin:0 0 12px">Saved workouts for this profile, newest first. Stored on this device only.</p>
+        <div id="history-list" class="history-list" tabindex="0" role="region" aria-label="Saved workout dates and types"></div>
+      </aside>
     </section>
 
     <!-- SCREEN: base week (onboarding step 2; also used to edit) -->
@@ -553,7 +569,8 @@
         return;
       }
       let saved = false;
-      try { saved = historyStore.saveDay(workoutProfile, date, { week: workoutRecord.week, day: dayIndex, exercises }); } catch (_) { saved = false; }
+      const workoutTypes = currentResult.week[dayIndex].sessions.map((s) => s.type);
+      try { saved = historyStore.saveDay(workoutProfile, date, { week: workoutRecord.week, day: dayIndex, workoutTypes, exercises }); } catch (_) { saved = false; }
       if (!saved) {
         logError = "This day couldn't be saved on this device. Your numbers are still in the boxes.";
         renderResult(currentResult);
@@ -857,6 +874,15 @@
         $('profile-title').textContent = rec ? 'Edit profile' : 'About you';
         $('profile-cancel').hidden = !rec && store.listProfiles().length === 0;
         fillForm(rec ? rec.profile : null);
+        $('screen-profile').classList.toggle('creating', !rec);
+        $('profile-history').hidden = !rec;
+        const days = rec ? H.createHistoryStore(storage).listDays(id) : [];
+        $('history-list').innerHTML = days.length ? '<ul>' + days.map((day) => {
+          const date = new Date(day.date + 'T12:00:00');
+          const title = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+          const types = (day.workoutTypes || []).map((type) => SESSION_TYPES[type]?.name).filter(Boolean);
+          return `<li><time datetime="${esc(day.date)}">${esc(title)}</time><span class="hint">${esc(types.join(' + ') || 'Logged workout')}</span></li>`;
+        }).join('') + '</ul>' : '<p class="empty">No workouts saved yet. Save a logged day in Your week to see it here.</p>';
         show('profile');
       }
 
