@@ -5,6 +5,45 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Claude Code: log and save a day (history.js + boxes + Save Logged Day)
+
+**Rules decided with the user:**
+- Each exercise has three boxes: Sets, Reps, Weight (lb only).
+- Each box's grey placeholder is the last saved result **of the exercise now in that row**, or "–" if it was never logged. After a swap, the placeholders switch to the new exercise's history.
+- On save, an exercise with Reps and Weight both 0 or blank is skipped. If either is above 0, it is stored.
+- One click saves (no confirm step), under the date of the selected weekday in this week.
+- A saved day is final.
+
+**My own choices (tell the user if they disagree):**
+- A blank box counts as 0. The grey number is only a reminder and is not saved.
+- A blank Sets box saves the planned number of sets.
+- Limits: sets 1–20, reps 0–100 (whole numbers), weight 0–2000 lb.
+- Saving a day with nothing filled in shows a message instead of locking an empty day.
+
+**Done (2 commits):** `prototype/history.js` + `tests/history.test.js`. Then the page:
+- Log mode shows the boxes in their own row under each exercise.
+- Typing keeps a draft per person and date (`flexweek:draft:<id>:<date>`), so numbers survive redraws and reloads.
+- The Save Logged Day button stores the day and clears the draft.
+- A logged day shows "Logged ✓", "3 sets × 8 reps · 135 lb" or "Skipped", and no swap menus, in both modes. The swap handler refuses swaps on logged days.
+- `openWorkout()` keeps logged days unchanged when the base workout is edited.
+
+The info-bubble test's fake `closest()` now honours its selector. It used to answer every lookup, so it looked like a Save button too. `tests/modes.test.js` has 6 new logging tests. `node --test tests/`: 107 pass. AGENTS.md now lists `history.js`.
+
+**Checked in Chrome** (temporary localhost server, existing test profile; this left Monday 2026-11-16 logged on the 127.0.0.1:8765 origin only):
+- Typed for real into the boxes. The draft saved and focus moved normally.
+- Reload kept the numbers. Save locked the day.
+- Friday's Bench Press showed 3/8/135 in grey.
+- At 390px the three boxes fit on one line after a small-screen CSS tweak. No console errors.
+
+**Known limits:**
+- At 390px the exercise table itself still scrolls sideways a little inside its box. The page doesn't. Leave it for the UI pass.
+- The Log-mode hint still says "you can still swap its exercises" on an already-logged day.
+- There's no way yet to look at past weeks' logs other than the grey placeholders.
+
+**Next step:** ask the user what's next. Options: plan step 2 (change days for this week only), step 3 (add or remove exercises), a past-workouts view, or the UI pass.
+
+---
+
 ## 2026-11-16 — Claude Code: swaps allowed while logging; one Edit Base Workout button
 
 **Done (user request):** "Log Today's Exercise" now shows the selected day's swap menus. A swap there is the same as in Modify mode and is saved to this week's record. The mode guard in the swap handler is gone. Removed the duplicate top-bar "Edit Base Workout" button (`edit-week-bar` and its listener); the one in the left card stays. `tests/modes.test.js` updated (swap while logging is applied and saved). `node --test tests/`: 94 pass. Not rechecked in Chrome (small change, covered by tests).

@@ -59,6 +59,7 @@ function loadPlanner() {
     FlexWeekWorkoutWeek: require('../prototype/workoutweek.js'),
     FlexWeekCatalog: catalog,
     FlexWeekWger: require('../prototype/wger.js'),
+    FlexWeekHistory: require('../prototype/history.js'),
   } });
   vm.runInContext(script, context);
   vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'legs', day: 2 }], 'a', storage);", context);
@@ -72,7 +73,7 @@ function loadPlanner() {
     return button;
   };
   const click = (button) => {
-    const event = { target: { closest: () => button } };
+    const event = { target: { closest: (selector) => (selector === '[data-info]' ? button : null) } };
     $('week').listeners.click(event);
     page.documentListeners.click({ target: button });
   };

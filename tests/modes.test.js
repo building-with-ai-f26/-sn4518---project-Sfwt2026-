@@ -4,7 +4,8 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 
 // Runs the planner's inline script against a small fake page, on a fixed Friday.
-function loadPlanner() {
+// Pass the `data` of an earlier page to reopen the app on the same device.
+function loadPlanner(data = new Map()) {
   const html = fs.readFileSync(require.resolve('../prototype/index.html'), 'utf8');
   // Skip the PostHog analytics snippet; run the planner's own inline script.
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
@@ -23,8 +24,7 @@ function loadPlanner() {
   };
   const WW = require('../prototype/workoutweek.js');
   const clock = new Date(2026, 10, 13, 12); // Friday
-  const data = new Map();
-  const storage = { getItem: (k) => data.get(k) || null, setItem: (k, v) => data.set(k, v) };
+  const storage = { getItem: (k) => data.get(k) || null, setItem: (k, v) => data.set(k, v), removeItem: (k) => data.delete(k) };
   const context = vm.createContext({ document, storage, window: {
     addEventListener() {},
     FlexWeek: require('../prototype/coach.js'),
@@ -32,6 +32,7 @@ function loadPlanner() {
       canEdit: (week, selected, day) => WW.canEdit(week, selected, day, clock) },
     FlexWeekCatalog: require('../prototype/exercises.js'),
     FlexWeekWger: require('../prototype/wger.js'), // set up on load; never called here
+    FlexWeekHistory: require('../prototype/history.js'),
   } });
   vm.runInContext(script, context);
   vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }], 'a', storage);", context);
@@ -43,8 +44,19 @@ function loadPlanner() {
     result: () => vm.runInContext('JSON.stringify(currentResult)', context),
     click: (id) => el(id).listeners.click(),
     pickDay: (day) => el('workout-day').listeners.change({ target: { value: String(day) } }),
+    run: (code) => vm.runInContext(code, context),
+    // Typing in one of an exercise's boxes, and pressing "Save Logged Day".
+    type: (exerciseId, field, value) => el('week').listeners.input({ target: { dataset: { logField: field, logExercise: exerciseId }, value } }),
+    save: (day) => el('week').listeners.click({ target: {
+      closest: (selector) => (selector === '[data-save-day]' ? { dataset: { saveDay: String(day) } } : null) } }),
+    swap: (day, exercise, id) => el('week').listeners.change({ target: {
+      dataset: { swapDay: String(day), swapSession: '0', swapExercise: String(exercise) }, value: id } }),
   };
 }
+
+const FRIDAY = '2026-11-13'; // day 4 of the fixed week of 2026-11-09
+const fridayExercises = (page) => JSON.parse(page.result()).week[4].sessions[0].exercises;
+const history = (page) => JSON.parse(page.data.get('flexweek:history:a') || 'null');
 
 test('the page opens in "Modify Current Week" with the whole week and swap menus', () => {
   const page = loadPlanner();
@@ -95,4 +107,110 @@ test('the mode survives redraws and switching back restores the planning view', 
   assert.equal(page.week(), planning);
   assert.equal(page.el('changes-card').hidden, false);
   assert.match(page.el('mode-hint').textContent, /this week only/);
+});
+
+test('logging shows Sets, Reps and Weight boxes with "–" the first time, and a Save button', () => {
+  const page = loadPlanner();
+  assert.doesNotMatch(page.week(), /data-log-field|data-save-day/, 'Modify mode has no boxes');
+  page.click('mode-log');
+  const [first] = fridayExercises(page);
+  for (const field of ['sets', 'reps', 'weight']) {
+    assert.match(page.week(), new RegExp(`data-log-field="${field}" data-log-exercise="${first.id}" value="" placeholder="–"`));
+  }
+  assert.match(page.week(), /data-save-day="4"/);
+  page.pickDay(1); // rest day: nothing to save
+  assert.doesNotMatch(page.week(), /data-save-day/);
+});
+
+test('the grey placeholder is the last logged result of the exercise now in the row, also after a swap', () => {
+  const data = new Map();
+  let page = loadPlanner(data);
+  const [first] = fridayExercises(page);
+  const choice = require('../prototype/coach.js').exerciseAlternatives(first.id, 'full')[0];
+  data.set('flexweek:history:a', JSON.stringify({ version: 1, days: {
+    '2026-11-02': { exercises: [{ id: choice.id, name: choice.name, sets: 4, reps: 6, weight: 95 }] },
+  } }));
+  page = loadPlanner(data);
+  page.click('mode-log');
+  assert.match(page.week(), new RegExp(`data-log-exercise="${first.id}" value="" placeholder="–"`));
+  page.swap(4, 0, choice.id);
+  assert.equal(fridayExercises(page)[0].id, choice.id);
+  assert.match(page.week(), new RegExp(`data-log-field="sets" data-log-exercise="${choice.id}" value="" placeholder="4"`));
+  assert.match(page.week(), new RegExp(`data-log-field="reps" data-log-exercise="${choice.id}" value="" placeholder="6"`));
+  assert.match(page.week(), new RegExp(`data-log-field="weight" data-log-exercise="${choice.id}" value="" placeholder="95"`));
+});
+
+test('typed numbers survive a reload, and saving stores only exercises with reps or weight above 0', () => {
+  const data = new Map();
+  let page = loadPlanner(data);
+  page.click('mode-log');
+  const [a, b, c] = fridayExercises(page);
+  page.type(a.id, 'reps', '8');
+  page.type(a.id, 'weight', '135');
+  page.type(b.id, 'sets', '4');
+  page.type(b.id, 'reps', '12'); // bodyweight: no weight
+  page.type(c.id, 'reps', '0');
+  page.type(c.id, 'weight', '0'); // both 0: skipped
+  page = loadPlanner(data); // reopen the app
+  page.click('mode-log');
+  assert.match(page.week(), new RegExp(`data-log-field="weight" data-log-exercise="${a.id}" value="135"`));
+  page.save(4);
+  const day = history(page).days[FRIDAY];
+  assert.deepEqual(day.exercises, [
+    { id: a.id, name: a.name, sets: a.sets, reps: 8, weight: 135 }, // blank Sets: the planned sets
+    { id: b.id, name: b.name, sets: 4, reps: 12, weight: 0 },
+  ]);
+  assert.equal(day.day, 4);
+  assert.equal(data.has(`flexweek:draft:a:${FRIDAY}`), false, 'the draft is cleared');
+});
+
+test('a saved day is final: no boxes, no Save button and no swaps, in both modes', () => {
+  const page = loadPlanner();
+  page.click('mode-log');
+  const [a, b] = fridayExercises(page);
+  page.type(a.id, 'reps', '8');
+  page.type(a.id, 'weight', '135');
+  page.save(4);
+  assert.match(page.week(), /Logged ✓/);
+  assert.match(page.week(), /3 sets × 8 reps · 135 lb/);
+  assert.match(page.week(), /Skipped/);
+  assert.match(page.week(), new RegExp(`saved for ${FRIDAY} and is final`));
+  assert.doesNotMatch(page.week(), /data-log-field|data-save-day|data-swap-day="4"/);
+  const before = page.result();
+  const choice = require('../prototype/coach.js').exerciseAlternatives(b.id, 'full')[0];
+  page.swap(4, 1, choice.id);
+  assert.equal(page.result(), before, 'a swap aimed at the saved day is refused');
+  page.save(4);
+  assert.equal(history(page).days[FRIDAY].exercises.length, 1, 'saving again changes nothing');
+  page.click('mode-modify');
+  assert.match(page.week(), /Logged ✓/);
+  assert.doesNotMatch(page.week(), /data-swap-day="4"/);
+});
+
+test('bad numbers or an empty day show a message and save nothing', () => {
+  const page = loadPlanner();
+  page.click('mode-log');
+  const [a] = fridayExercises(page);
+  page.save(4);
+  assert.match(page.week(), /Enter Reps or Weight for at least one exercise/);
+  page.type(a.id, 'reps', '8.5');
+  page.save(4);
+  assert.match(page.week(), new RegExp(`${a.name}: Reps must be a whole number from 0 to 100\.`));
+  assert.equal(history(page), null);
+  page.type(a.id, 'reps', '8');
+  page.save(4);
+  assert.equal(history(page).days[FRIDAY].exercises[0].reps, 8);
+  assert.doesNotMatch(page.week(), /role="alert"/);
+});
+
+test('editing the base workout never changes a logged day', () => {
+  const page = loadPlanner();
+  page.click('mode-log');
+  const logged = fridayExercises(page);
+  page.type(logged[0].id, 'reps', '8');
+  page.save(4);
+  page.run("setBasePlan([{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'lower', day: 4 }], 'a', storage);");
+  assert.deepEqual(fridayExercises(page), logged, 'Friday stays as it was done');
+  page.run("setBasePlan([{ type: 'upper', day: 0 }, { type: 'legs', day: 2 }, { type: 'full', day: 4 }], 'a', storage);");
+  assert.equal(JSON.parse(page.result()).week[2].sessions[0].type, 'legs', 'days not logged still follow the base workout');
 });

@@ -87,6 +87,7 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
       canEdit: (week, selected, day) => WW.canEdit(week, selected, day, clock) },
     FlexWeekCatalog: require('../prototype/exercises.js'),
     FlexWeekWger: require('../prototype/wger.js'), // the page sets up its wger client on load; these tests never call it
+    FlexWeekHistory: require('../prototype/history.js'),
   } });
   vm.runInContext(script, context);
   vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'upper', day: 2 }, { type: 'upper', day: 4 }], 'a', storage);", context);
