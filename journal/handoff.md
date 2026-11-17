@@ -5,6 +5,14 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Claude Code: swaps allowed while logging; one Edit Base Workout button
+
+**Done (user request):** "Log Today's Exercise" now shows the selected day's swap menus. A swap there is the same as in Modify mode and is saved to this week's record. The mode guard in the swap handler is gone. Removed the duplicate top-bar "Edit Base Workout" button (`edit-week-bar` and its listener); the one in the left card stays. `tests/modes.test.js` updated (swap while logging is applied and saved). `node --test tests/`: 94 pass. Not rechecked in Chrome (small change, covered by tests).
+
+**Decided:** The user wants a **"Save logged day" button**, and its saves are final. Flow: pick the weekday, record numbers, swap exercises if needed, then save. This replaces plan steps 4–6 below with one "log and save a day" feature. A design proposal with risks went to the user; wait for answers before coding.
+
+---
+
 ## 2026-11-16 — Claude Code: Step 1 of workout logging, two modes for "Your week"
 
 **Context:** Build 2 is submitted (user confirmed; PostHog screenshot taken, Product Page merged this morning). The user said not to merge these next changes. Keep committing on `build-2-profile-onboarding`; don't push or merge unless asked.

@@ -54,7 +54,7 @@ test('the page opens in "Modify Current Week" with the whole week and swap menus
   assert.equal(page.el('changes-card').hidden, false);
 });
 
-test('"Log Today\'s Exercise" shows only the selected day, without swap menus', () => {
+test('"Log Today\'s Exercise" shows only the selected day, with its swap menus', () => {
   const page = loadPlanner();
   page.click('mode-log');
   assert.equal(page.el('mode-log').attributes['aria-pressed'], 'true');
@@ -63,25 +63,26 @@ test('"Log Today\'s Exercise" shows only the selected day, without swap menus', 
   assert.match(page.el('mode-hint').textContent, /Only that day's workout/);
   assert.equal(page.days(), 1);
   assert.match(page.week(), /Fri/);
-  assert.doesNotMatch(page.week(), /data-swap-day|Switch to|Selected workout/);
+  assert.match(page.week(), /data-swap-day="4"/);
+  assert.doesNotMatch(page.week(), /Selected workout/);
   assert.match(page.week(), /class="info-btn"/, 'exercise info stays available');
   page.pickDay(1); // Tuesday is a rest day in this base workout
   assert.equal(page.days(), 1);
   assert.match(page.week(), /Rest day\. Nothing to log\./);
 });
 
-test('a swap that arrives while logging changes nothing', () => {
+test('a swap while logging changes the selected day and is saved, like in Modify', () => {
   const page = loadPlanner();
-  const before = page.result();
-  const saved = new Map(page.data);
-  const exercise = JSON.parse(before).week[4].sessions[0].exercises[0];
+  const exercise = JSON.parse(page.result()).week[4].sessions[0].exercises[0];
   const choice = require('../prototype/coach.js').exerciseAlternatives(exercise.id, 'full')[0];
   page.click('mode-log');
   page.el('week').listeners.change({ target: {
     dataset: { swapDay: '4', swapSession: '0', swapExercise: '0' }, value: choice.id,
   } });
-  assert.equal(page.result(), before);
-  assert.deepEqual(page.data, saved, 'nothing new is saved');
+  assert.equal(JSON.parse(page.result()).week[4].sessions[0].exercises[0].id, choice.id);
+  const saved = JSON.parse(page.data.get('flexweek:workouts:a:2026-11-09'));
+  assert.equal(saved.result.week[4].sessions[0].exercises[0].id, choice.id);
+  assert.equal(page.days(), 1, 'still logging the same day after the swap');
 });
 
 test('the mode survives redraws and switching back restores the planning view', () => {
