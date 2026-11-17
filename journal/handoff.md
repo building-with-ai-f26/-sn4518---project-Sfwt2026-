@@ -5,6 +5,14 @@ Agents: read the latest entry before starting, and add a new one before you stop
 
 ---
 
+## 2026-11-16 — Claude Code: roadmap note, separate history screen; next is add/remove exercises
+
+**Remember (user request):** FlexWeek needs a **separate screen to see historicals**: past logged days and weeks, per person, from `history.js`. The grey placeholders in Log mode don't replace it. It isn't scheduled yet; keep it on the list and raise it when choosing next steps.
+
+**Agreed next step:** add or remove exercises in a day, this week only, **available in both modes** (Modify Current Week and Log Today's Exercise). A plan with risks went to the user; wait for their OK before coding.
+
+---
+
 ## 2026-11-16 — Claude Code: log and save a day (history.js + boxes + Save Logged Day)
 
 **Rules decided with the user:**
