@@ -1,5 +1,14 @@
 # Agent handoff log
 
+## 2026-11-17 — Codex: subtle workout type label selector
+
+- User approved replacing the separate Change workout type control with the existing blue session label as a compact native select. Only selected unlogged dates in Modify Current Week are interactive; other labels remain spans.
+- Kept blue pill styling with native dropdown arrow, subtle hover border and visible keyboard focus. Current type is selected. Tooltip explains replacement/unsaved-number clearing. Removed separate selector and its hint paragraph. Workout logic is unchanged.
+- Validation: all 117 tests pass; git diff --check passes. Visual browser/mobile checks remain outstanding due to the prior browser-control blocker.
+- Local only, no push. Next: user checks the subtle label selector.
+
+---
+
 ## 2026-11-17 — Codex: temporary whole-day workout type changes
 
 - Approved scope: in Modify Current Week, selected unlogged workout dates have Change workout type. Choosing Upper/Lower/Full Body/Push/Pull/Legs replaces the day's exercises with defaults using the existing coach, clears all unsaved numbers for that date, and removes its earlier edit explanations. Logged dates and rest days cannot be changed here. Base workout and history are untouched.
