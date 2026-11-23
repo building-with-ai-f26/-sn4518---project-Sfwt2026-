@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { dateOf, readResult, createHistoryStore } = require('../prototype/history.js');
+const { dateOf, readResult, createHistoryStore } = require('../docs/app/history.js');
 
 const memory = () => {
   const data = new Map();

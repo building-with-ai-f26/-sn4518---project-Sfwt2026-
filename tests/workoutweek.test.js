@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { calendar, canEdit, createWorkoutStore } = require('../prototype/workoutweek.js');
+const { calendar, canEdit, createWorkoutStore } = require('../docs/app/workoutweek.js');
 
 test('local weeks start Monday across Sunday, year and daylight-saving boundaries', () => {
   assert.deepEqual(calendar(new Date(2027, 0, 3, 23)), { day: 6, week: '2026-12-28' });

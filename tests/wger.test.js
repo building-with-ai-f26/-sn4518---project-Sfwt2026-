@@ -1,8 +1,8 @@
-// Deterministic tests for the wger client (prototype/wger.js). They use a fake fetch: no network.
+// Deterministic tests for the wger client (docs/app/wger.js). They use a fake fetch: no network.
 // Run from the repo root:  node --test tests/
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createWgerClient, htmlToText } = require('../prototype/wger.js');
+const { createWgerClient, htmlToText } = require('../docs/app/wger.js');
 
 // A fake fetch that records the URLs it was asked for and answers like wger would.
 function fakeFetch(answer) {

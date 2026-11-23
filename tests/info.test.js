@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 // Runs the planner's inline script against a small fake page and returns handles to poke it.
 function loadPlanner() {
-  const html = fs.readFileSync(require.resolve('../prototype/index.html'), 'utf8');
+  const html = fs.readFileSync(require.resolve('../docs/app/index.html'), 'utf8');
   // Skip the PostHog analytics snippet; run the planner's own inline script.
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
     .map((m) => m[1]).find((s) => !s.includes('posthog'));
@@ -43,7 +43,7 @@ function loadPlanner() {
   const storage = { getItem: (k) => data.get(k) || null, setItem: (k, v) => data.set(k, v) };
   // A copy of the catalog, so a test can decide which exercises have a wger match.
   const catalog = { BY_ID: {} };
-  Object.values(require('../prototype/exercises.js').BY_ID).forEach((e) => { catalog.BY_ID[e.id] = { ...e }; });
+  Object.values(require('../docs/app/exercises.js').BY_ID).forEach((e) => { catalog.BY_ID[e.id] = { ...e }; });
   // A fake fetch instead of the network: it records each request and waits for the test to answer or fail it.
   // net.of('text') are the description requests, net.of('pictures') the image requests.
   const net = { calls: [] };
@@ -55,11 +55,11 @@ function loadPlanner() {
   net.fail = (kind, i) => net.of(kind)[i].reject(new Error('offline'));
   const context = vm.createContext({ document, storage, fetch, setInterval, clearInterval, window: {
     scrollX: 0, scrollY: 500, addEventListener() {},
-    FlexWeek: require('../prototype/coach.js'),
-    FlexWeekWorkoutWeek: require('../prototype/workoutweek.js'),
+    FlexWeek: require('../docs/app/coach.js'),
+    FlexWeekWorkoutWeek: require('../docs/app/workoutweek.js'),
     FlexWeekCatalog: catalog,
-    FlexWeekWger: require('../prototype/wger.js'),
-    FlexWeekHistory: require('../prototype/history.js'),
+    FlexWeekWger: require('../docs/app/wger.js'),
+    FlexWeekHistory: require('../docs/app/history.js'),
   } });
   vm.runInContext(script, context);
   vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'legs', day: 2 }], 'a', storage);", context);

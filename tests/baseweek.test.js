@@ -3,8 +3,8 @@
 // Run from the repo root:  node --test tests/
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { defaultWeek, validateBaseWeek, createWeekStore, SESSION_TYPES } = require('../prototype/baseweek.js');
-const coach = require('../prototype/coach.js');
+const { defaultWeek, validateBaseWeek, createWeekStore, SESSION_TYPES } = require('../docs/app/baseweek.js');
+const coach = require('../docs/app/coach.js');
 
 function fakeStorage() {
   const m = new Map();

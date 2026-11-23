@@ -12,6 +12,7 @@ credentials.json
 .codex/
 .cursor/
 .opencode/
+/build3-slides.md
 
 # Dependencies & Virtual Environments
 node_modules/

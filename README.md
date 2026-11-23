@@ -5,7 +5,7 @@
 - **Builder:** Sebastian Nieto (`sebastian-nieto-1309`)
 - **Pod:** TBD
 - **Product Page & Living PRD:** https://building-with-ai-f26.github.io/-sn4518---project-Sfwt2026-/
-- **App:** runs locally through Week 4; add a cloud URL in Build 5.
+- **App:** [FlexWeek on GitHub Pages](https://building-with-ai-f26.github.io/-sn4518---project-Sfwt2026-/app/)
 
 ## Start here: Build 1
 
@@ -35,7 +35,7 @@ Create your PostHog account in Week 1. Install it on the Product Page and local 
 
 ## Local setup
 
-No install needed. Open `prototype/index.html` in a browser; run tests with `node --test tests/` (Node 18+).
+No install needed. Open `docs/app/index.html` in a browser; run tests with `node --test tests/` (Node 18+).
 
 ```bash
 git clone https://github.com/building-with-ai-f26/-sn4518---project-Sfwt2026-.git

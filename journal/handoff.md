@@ -1,5 +1,10 @@
 # Agent handoff log
 
+## 2026-11-22 — Codex: Build 3 app move
+
+- Beginner lane. Moved the static app to `docs/app/`, updated the product link, test paths, catalog generator and local instructions, and documented the shipping workflow.
+- Next: verify deployment and the complete phone workflow, review PostHog capture on the public app, and finish `SECURITY.md` and the public build log. The slides specify a live URL, repo and lane, audit link, and screenshot of the security test. FlexWeek has no database or AI endpoint, so the applicable live test is the private-key search.
+
 ## 2026-11-17 — Codex: publishing and merging local work
 
 - User explicitly requested commit, GitHub push and merge, superseding the prior local-only preference.
