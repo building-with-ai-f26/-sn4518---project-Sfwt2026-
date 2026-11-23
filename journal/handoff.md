@@ -1,5 +1,38 @@
 # Agent handoff log
 
+## 2026-11-23 — Claude Code: Build 3 SUBMITTED (start here)
+
+### Status
+- **Submitted on Icerynk:** Mon Nov 23 at 11:12 AM NY, before the noon deadline. Link: live app `/app/`. Note: repo, Beginner lane, SECURITY.md, product page. Uploads: `build3-key-search-clean.png` and `build3-posthog-replay-masked.png`. Grade not released yet.
+- **`main` is live** at https://building-with-ai-f26.github.io/-sn4518---project-Sfwt2026-/ (app at `/app/`). 118 tests pass.
+- **GitHub CLI works now.** `gh auth status` shows it's logged in as the user's account with `repo` scope, so the earlier 401 is gone. Agents can create and merge PRs themselves. The user asked agents to handle GitHub steps rather than handing them back.
+
+### PRs merged today (all from `build-3-pages`)
+| PR | Merge | What |
+|---|---|---|
+| #6 | `ad310b4` | Move app to `docs/app/`, publish via GitHub Pages (Codex, merged in GitHub UI) |
+| #7 | `b39aa05` | Session Replay back on with `maskAllInputs` + `maskTextSelector: '*'` |
+| #8 | `10a65c0` | Escape saved workout text in `renderResult()` + regression test; SECURITY.md rewrite; AGENTS.md rules 7–8; Build 3 log + screenshots; ~12 h / $0 |
+| #9 | `9e08368` | PRD v3 section 4: Hosting, Database, Security paragraphs; refreshed analytics + cost lines |
+| #10 | `cea120e` | "What broke" bullet in Build 3 log; analytics claim limited to the verified masked replay |
+
+### Decisions and findings
+- **Replay:** the assignment requires replay on the live site, so it's on but fully masked. The user verified it on their phone; the screenshot is in `docs/`. Pageview events in PostHog Activity were never checked, so don't claim them.
+- **Security:** the live key search is clean across 9 files. The repo only has the `.env.example` placeholder. The real finding: the shared `building-with-ai-f26.github.io` origin means other class sites can read and write FlexWeek's localStorage. Injection is fixed; the shared storage itself is an accepted risk, documented in SECURITY.md.
+- **AGENTS.md:** rule 7, check the assignment before turning off required features (the real replay mistake). Rule 8, always escape stored or fetched text before `innerHTML`.
+- **Hours and spend:** Build 3 ≈ 12 h (user said "3 more" than Build 2's 9). $0 extra; cumulative $0.
+
+### Next steps
+1. **Nov 24 class:** a classmate does the full phone walkthrough (profile → base week → modify → log a day → history). Record results and any fixes in the Build 3 log and SECURITY.md "What is left". This was the only unmet Build 3 item at submission.
+2. **User accounts plus a real database.** The user says browser-only storage "is simply not realistic". The user asked if this fits in 1 hour; the answer was no, realistically 4–6 h, so it was deferred until after Build 3. Recommended plan, to be proposed and approved before coding:
+   - Supabase Auth (magic link or Google) and Postgres tables with `user_id` and Row Level Security, still hosted on GitHub Pages with the publishable key.
+   - Keep code changes small by swapping the injected `storage` object for one backed by Supabase (load on sign-in, write-through).
+   - Then run the Account A vs. B security test and update SECURITY.md and the PRD.
+   - Creating the Supabase project and keys is on "Ask me first", so the user creates the account.
+   - Check with the user whether this goes in Build 4 or Build 5.
+3. **Whoop, later:** OAuth needs a client secret, so it needs a server-side token exchange (e.g. a Supabase Edge Function) and per-user token storage behind RLS. Accounts are a prerequisite.
+4. **Still pending from earlier:** user review of the 42 unmatched wger exercises; Add-menu search; UI polish; "Modify remaining workouts".
+
 ## 2026-11-23 — Claude Code: Build 3 security review and evidence
 
 - PR #7 (`b39aa05`) is live with masked replay; the user's phone session confirmed masking in PostHog. The live key search is clean (9 files, 0 matches). Screenshots: `docs/build3-posthog-replay-masked.png`, `docs/build3-key-search-clean.png`.
