@@ -2,7 +2,7 @@
 // Run from the repo root:  node --test tests/
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { validateProfile, bmi, createStore } = require('../prototype/profile.js');
+const { validateProfile, bmi, createStore } = require('../docs/app/profile.js');
 
 // A complete, valid metric profile as the form would send it (strings).
 const VALID = { units: 'metric', age: '29', heightCm: '180', weightKg: '81', bodyFatPct: '', goal: 'get_stronger' };

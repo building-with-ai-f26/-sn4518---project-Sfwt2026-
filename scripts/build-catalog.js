@@ -1,5 +1,5 @@
 /*
- * Builds prototype/exercises.js (the FlexWeek exercise catalog) from:
+ * Builds docs/app/exercises.js (the FlexWeek exercise catalog) from:
  *   - data/exercises.json        the full free-exercise-db (public domain), 876 exercises
  *   - scripts/catalog-picks.txt  our curated picks, with our own equipment lists and fixes
  *   - scripts/wger-matches.txt   which wger exercise each pick matches (for the info bubble's description)
@@ -142,12 +142,12 @@ const out = `/*
 })(this);
 `;
 
-fs.writeFileSync(path.join(ROOT, 'prototype', 'exercises.js'), out);
+fs.writeFileSync(path.join(ROOT, 'docs', 'app', 'exercises.js'), out);
 
 // Summary, so a human can sanity-check the result without opening the big file.
-const { alternatives, EQUIPMENT_ITEMS } = require(path.join(ROOT, 'prototype', 'exercises.js'));
+const { alternatives, EQUIPMENT_ITEMS } = require(path.join(ROOT, 'docs', 'app', 'exercises.js'));
 const count = (cat) => catalog.filter((e) => e.category === cat).length;
-console.log('Wrote prototype/exercises.js: ' + catalog.length + ' exercises (' +
+console.log('Wrote docs/app/exercises.js: ' + catalog.length + ' exercises (' +
   count('strength') + ' strength, ' + count('stretch') + ' stretch, ' + count('cardio') + ' cardio)');
 const unmatched = catalog.filter((e) => e.wgerId === null).map((e) => e.name);
 console.log('\nMatched to wger: ' + (catalog.length - unmatched.length) + ' of ' + catalog.length +

@@ -6,7 +6,7 @@ const vm = require('node:vm');
 // Runs the planner's inline script against a small fake page, on a fixed Friday.
 // Pass the `data` of an earlier page to reopen the app on the same device.
 function loadPlanner(data = new Map()) {
-  const html = fs.readFileSync(require.resolve('../prototype/index.html'), 'utf8');
+  const html = fs.readFileSync(require.resolve('../docs/app/index.html'), 'utf8');
   // Skip the PostHog analytics snippet; run the planner's own inline script.
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
     .map((m) => m[1]).find((s) => !s.includes('posthog'));
@@ -22,17 +22,17 @@ function loadPlanner(data = new Map()) {
     },
     addEventListener(type, listener) { documentListeners[type] = listener; },
   };
-  const WW = require('../prototype/workoutweek.js');
+  const WW = require('../docs/app/workoutweek.js');
   const clock = new Date(2026, 10, 13, 12); // Friday
   const storage = { getItem: (k) => data.get(k) || null, setItem: (k, v) => data.set(k, v), removeItem: (k) => data.delete(k) };
   const context = vm.createContext({ document, storage, window: {
     addEventListener() {},
-    FlexWeek: require('../prototype/coach.js'),
+    FlexWeek: require('../docs/app/coach.js'),
     FlexWeekWorkoutWeek: { ...WW, calendar: () => WW.calendar(clock),
       canEdit: (week, selected, day) => WW.canEdit(week, selected, day, clock) },
-    FlexWeekCatalog: require('../prototype/exercises.js'),
-    FlexWeekWger: require('../prototype/wger.js'), // set up on load; never called here
-    FlexWeekHistory: require('../prototype/history.js'),
+    FlexWeekCatalog: require('../docs/app/exercises.js'),
+    FlexWeekWger: require('../docs/app/wger.js'), // set up on load; never called here
+    FlexWeekHistory: require('../docs/app/history.js'),
   } });
   vm.runInContext(script, context);
   vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }], 'a', storage);", context);
@@ -72,7 +72,7 @@ test('whole-day type replacement uses defaults, clears edits and drafts, survive
   page.click('mode-modify');
   changeType(page, 4, 'legs');
   const result = JSON.parse(page.result());
-  const defaults = require('../prototype/coach.js').adjustWeek({ basePlan: [{ type: 'legs', day: 4 }], daysAvailable: 1, equipment: 'full', preserveDays: true });
+  const defaults = require('../docs/app/coach.js').adjustWeek({ basePlan: [{ type: 'legs', day: 4 }], daysAvailable: 1, equipment: 'full', preserveDays: true });
   assert.deepEqual(result.week[4].sessions, defaults.week[4].sessions);
   assert.deepEqual(result.week[0], original.week[0]);
   assert.equal(page.data.has('flexweek:draft:a:2026-11-13'), false);
@@ -158,7 +158,7 @@ test('"Log Today\'s Exercise" shows only the selected day, with its swap menus',
 test('a swap while logging changes the selected day and is saved, like in Modify', () => {
   const page = loadPlanner();
   const exercise = JSON.parse(page.result()).week[4].sessions[0].exercises[0];
-  const choice = require('../prototype/coach.js').exerciseAlternatives(exercise.id, 'full')[0];
+  const choice = require('../docs/app/coach.js').exerciseAlternatives(exercise.id, 'full')[0];
   page.click('mode-log');
   page.el('week').listeners.change({ target: {
     dataset: { swapDay: '4', swapSession: '0', swapExercise: '0' }, value: choice.id,
@@ -198,7 +198,7 @@ test('the grey placeholder is the last logged result of the exercise now in the 
   const data = new Map();
   let page = loadPlanner(data);
   const [first] = fridayExercises(page);
-  const choice = require('../prototype/coach.js').exerciseAlternatives(first.id, 'full')[0];
+  const choice = require('../docs/app/coach.js').exerciseAlternatives(first.id, 'full')[0];
   data.set('flexweek:history:a', JSON.stringify({ version: 1, days: {
     '2026-11-02': { exercises: [{ id: choice.id, name: choice.name, sets: 4, reps: 6, weight: 95 }] },
   } }));
@@ -249,7 +249,7 @@ test('a saved day is final: no boxes, no Save button and no swaps, in both modes
   assert.match(page.week(), new RegExp(`saved for ${FRIDAY} and is final`));
   assert.doesNotMatch(page.week(), /data-log-field|data-save-day|data-swap-day="4"/);
   const before = page.result();
-  const choice = require('../prototype/coach.js').exerciseAlternatives(b.id, 'full')[0];
+  const choice = require('../docs/app/coach.js').exerciseAlternatives(b.id, 'full')[0];
   page.swap(4, 1, choice.id);
   assert.equal(page.result(), before, 'a swap aimed at the saved day is refused');
   page.save(4);
@@ -307,7 +307,7 @@ test('both modes show Remove buttons and an Add menu on the selected day only', 
 test('adding while logging puts the exercise at the end, with its own boxes, and lists the edit', () => {
   const page = loadPlanner();
   page.click('mode-log');
-  const curl = require('../prototype/exercises.js').EXERCISES.find((e) => e.name === 'Barbell Curl');
+  const curl = require('../docs/app/exercises.js').EXERCISES.find((e) => e.name === 'Barbell Curl');
   const before = fridayExercises(page).length;
   page.add(4, curl.id);
   const after = fridayExercises(page);
@@ -343,7 +343,7 @@ test('removing keeps at least one exercise, and add/remove of the same exercise 
 
 test('a logged day refuses adds and removes; base workout edits keep hand edits on unchanged days', () => {
   const page = loadPlanner();
-  const curl = require('../prototype/exercises.js').EXERCISES.find((e) => e.name === 'Barbell Curl');
+  const curl = require('../docs/app/exercises.js').EXERCISES.find((e) => e.name === 'Barbell Curl');
   page.add(4, curl.id);
   page.run("setBasePlan([{ type: 'upper', day: 0 }, { type: 'legs', day: 2 }, { type: 'full', day: 4 }], 'a', storage);");
   assert.equal(fridayExercises(page).at(-1).id, curl.id, 'Friday is still Full Body, so the added curl stays');
@@ -353,7 +353,7 @@ test('a logged day refuses adds and removes; base workout edits keep hand edits 
   page.type(curl.id, 'reps', '10');
   page.save(4);
   const done = page.result();
-  page.add(4, require('../prototype/exercises.js').EXERCISES.find((e) => e.name === 'Hammer Curl').id);
+  page.add(4, require('../docs/app/exercises.js').EXERCISES.find((e) => e.name === 'Hammer Curl').id);
   page.remove(4, 0);
   assert.equal(page.result(), done);
   assert.doesNotMatch(page.week(), /data-remove|data-add-day/);

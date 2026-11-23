@@ -2,7 +2,7 @@
 // Run from the repo root:  node --test tests/
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { adjustWeek } = require('../prototype/coach.js');
+const { adjustWeek } = require('../docs/app/coach.js');
 
 const MON = 0, TUE = 1, WED = 2, THU = 3, FRI = 4, SAT = 5;
 const ULF = [

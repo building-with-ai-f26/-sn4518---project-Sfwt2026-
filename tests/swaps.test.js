@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { adjustWeek, exerciseAlternatives, swapExercise, addableExercises, addExercise } = require('../prototype/coach.js');
-const { EXERCISES, canDo } = require('../prototype/exercises.js');
+const { adjustWeek, exerciseAlternatives, swapExercise, addableExercises, addExercise } = require('../docs/app/coach.js');
+const { EXERCISES, canDo } = require('../docs/app/exercises.js');
 
 const byName = (name) => EXERCISES.find((e) => e.name === name);
 const home = ['dumbbells', 'adjustable bench', 'resistance band'];
@@ -62,7 +62,7 @@ test('an exercise without eligible alternatives returns an empty list', () => {
 test('planner edits selected weekdays on Friday and retains independent swaps across reloads', () => {
   const fs = require('node:fs');
   const vm = require('node:vm');
-  const html = fs.readFileSync(require.resolve('../prototype/index.html'), 'utf8');
+  const html = fs.readFileSync(require.resolve('../docs/app/index.html'), 'utf8');
   // Skip the PostHog analytics snippet; run the planner's own inline script.
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
     .map((m) => m[1]).find((s) => !s.includes('posthog'));
@@ -75,19 +75,19 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
     },
     addEventListener() {},
   };
-  const WW = require('../prototype/workoutweek.js');
+  const WW = require('../docs/app/workoutweek.js');
   const clock = new Date(2026, 10, 13, 12); // Friday
   const FixedDate = class extends Date { constructor(...args) { super(...(args.length ? args : [clock.getTime()])); } };
   const data = new Map();
   const storage = { getItem: (k) => data.get(k) || null, setItem: (k, v) => data.set(k, v) };
   const context = vm.createContext({ document, Date: FixedDate, storage, window: {
     addEventListener() {},
-    FlexWeek: require('../prototype/coach.js'),
+    FlexWeek: require('../docs/app/coach.js'),
     FlexWeekWorkoutWeek: { ...WW, calendar: () => WW.calendar(clock),
       canEdit: (week, selected, day) => WW.canEdit(week, selected, day, clock) },
-    FlexWeekCatalog: require('../prototype/exercises.js'),
-    FlexWeekWger: require('../prototype/wger.js'), // the page sets up its wger client on load; these tests never call it
-    FlexWeekHistory: require('../prototype/history.js'),
+    FlexWeekCatalog: require('../docs/app/exercises.js'),
+    FlexWeekWger: require('../docs/app/wger.js'), // the page sets up its wger client on load; these tests never call it
+    FlexWeekHistory: require('../docs/app/history.js'),
   } });
   vm.runInContext(script, context);
   vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'upper', day: 2 }, { type: 'upper', day: 4 }], 'a', storage);", context);

@@ -1,8 +1,8 @@
-// Deterministic tests for the exercise catalog (prototype/exercises.js) and its alternatives rule.
+// Deterministic tests for the exercise catalog (docs/app/exercises.js) and its alternatives rule.
 // Run from the repo root:  node --test tests/
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { EXERCISES, BY_ID, EQUIPMENT_ITEMS, canDo, alternatives } = require('../prototype/exercises.js');
+const { EXERCISES, BY_ID, EQUIPMENT_ITEMS, canDo, alternatives } = require('../docs/app/exercises.js');
 
 const idOf = (name) => {
   const e = EXERCISES.find((x) => x.name === name);

@@ -2,10 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const H = require('../prototype/history.js');
+const H = require('../docs/app/history.js');
 
 function page() {
-  const html = fs.readFileSync(require.resolve('../prototype/index.html'), 'utf8');
+  const html = fs.readFileSync(require.resolve('../docs/app/index.html'), 'utf8');
   const script = html.slice(html.indexOf('      function historyDate('), html.indexOf('      function openProfile('));
   const data = new Map();
   const storage = { getItem: (key) => data.get(key), setItem: (key, value) => data.set(key, value) };
@@ -18,7 +18,7 @@ function page() {
     return elements.get(id);
   };
   const context = vm.createContext({ $, H, storage, editingId: 'a',
-    SESSION_TYPES: require('../prototype/coach.js').SESSION_TYPES,
+    SESSION_TYPES: require('../docs/app/coach.js').SESSION_TYPES,
     esc: (s) => String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;') });
   vm.runInContext(script, context);
   return { $, store: H.createHistoryStore(storage), context,
