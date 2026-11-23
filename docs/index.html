@@ -212,6 +212,9 @@
 
       <h3>4. Architecture</h3>
       <p>A browser page uses fixed JavaScript rules and a 120-exercise catalog to generate routines. Profiles, base weeks, and dated workout snapshots are stored locally on the device. Exercise information loads from wger when requested and is cached for the page session, with local instructions as a fallback. No AI model, backend, or API key is required.</p>
+      <p><strong>Hosting:</strong> GitHub Pages serves the static site from <code>/docs</code> on <code>main</code>, with the app at <code>/app/</code>. Every merged pull request deploys automatically.</p>
+      <p><strong>Database:</strong> None in this build. Data stays in each browser’s localStorage, so there is no server data to protect, back up, or leak. The trade-off is that history doesn’t move between devices and anyone using the same browser can open its profiles. Accounts with a real database (Supabase or Neon with Row Level Security) are the path if cross-device history ships.</p>
+      <p><strong>Security:</strong> There are no secret keys anywhere; the live site’s code search finds none, and the PostHog key is public by design. Saved and fetched text is escaped before it is shown, because every class site on the shared <code>github.io</code> origin can reach this browser storage. Session Replay masks all text and inputs. Destructive, secret-related, and paid actions are on the agents’ “Ask me first” list. Details are in <a href="https://github.com/building-with-ai-f26/-sn4518---project-Sfwt2026-/blob/main/SECURITY.md">SECURITY.md</a>.</p>
 
       <h3>5. Unit Economics &amp; Analytics Snapshot</h3>
       <div class="grid-2">
@@ -232,8 +235,8 @@
           <div class="stat-value">TBD</div>
         </div>
       </div>
-      <p><strong>Cost basis:</strong> The current free wger integration and local rules engine have no per-run API charge. Build 2 used an existing Claude subscription and incurred $0 additional spending, with no paid APIs or infrastructure. Active work time was approximately 9 hours.</p>
-      <p><strong>Analytics evidence:</strong> PostHog is installed, and the build log records local events and replay verification. Published-page verification and outside-user usage remain unconfirmed.</p>
+      <p><strong>Cost basis:</strong> The current free wger integration and local rules engine have no per-run API charge. Hosting on GitHub Pages is free. Builds 1–3 used existing Claude and ChatGPT subscriptions, with $0 additional spending and no paid APIs or infrastructure. Active work time was about 3, 9, and 12 hours.</p>
+      <p><strong>Analytics evidence:</strong> PostHog runs on the published app. A live phone session in Build 3 recorded pageviews and a masked Session Replay. Usage by outside users is not yet measured.</p>
       <p><strong>Next measurement step:</strong> Track onboarding completion, first workout viewed, first swap saved, and return use through explicit funnel events.</p>
 
       <h3>6. Next Build</h3>
