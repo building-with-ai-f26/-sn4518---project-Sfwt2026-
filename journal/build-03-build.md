@@ -18,7 +18,7 @@ Optional working notes. Publish your required build log on `docs/index.html`; no
 
 ## 3. What the agent did
 - **Agent:** Codex.
-- **Direction:** Follow the static GitHub Pages path from the class slides and keep the deployment focused. Preserve pageview analytics and disable replay and automatic interaction tracking on the app.
+- **Direction:** Follow the static GitHub Pages path from the class slides and keep the deployment focused. Preserve pageview analytics and disable automatic interaction tracking on the app. Codex first disabled Session Replay too; it was turned back on with full text and input masking because the assignment requires replay on the live site.
 - **Builder verification:** Ran the fake-profile workflow locally, handled the PR in GitHub, and used the live app on a phone.
 
 ## 4. What didn't work

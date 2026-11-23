@@ -10,7 +10,9 @@
     posthog.init('phc_yWH2DYtbqwrPNAGoqva7mXUJ3eoKu2SEwmUWxZqP9yeE', {
         api_host: 'https://us.i.posthog.com',
         defaults: '2026-05-30',
-        disable_session_recording: true,
+        // Session replay is on (Build 3 requirement), but every input and all page text is
+        // masked so profile details and workout logs never reach PostHog.
+        session_recording: { maskAllInputs: true, maskTextSelector: '*' },
         autocapture: false,
         capture_pageview: true,
         person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well

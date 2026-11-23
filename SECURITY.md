@@ -17,7 +17,7 @@ Build 3 beginner lane. FlexWeek is a static HTML, CSS, and JavaScript app served
 
 ## What I fixed
 
-- The app configuration disables PostHog Session Replay and autocapture and explicitly enables pageview tracking.
+- PostHog Session Replay stays on, as the assignment requires, but masks every input and all page text (`maskAllInputs: true`, `maskTextSelector: '*'`), so recordings show layout and clicks but not profile details or workout numbers. Autocapture is off and pageview tracking is explicitly on.
 
 ## What is left
 
