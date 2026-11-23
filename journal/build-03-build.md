@@ -26,7 +26,7 @@ Optional working notes. Publish your required build log on `docs/index.html`; no
 - **Agent mistake:** Codex disabled Session Replay, which the assignment requires. Fixed in PR #7 with full masking, and recorded as AGENTS.md rule 7.
 
 ## 5. What it cost
-- **Agent spend, hours, and cumulative spend:** Pending actuals.
+- **Agent spend, hours, and cumulative spend:** $0.00 additional (existing Claude and ChatGPT/Codex subscriptions) · ~12 hours · cumulative $0.00.
 - **Hosting and runtime:** GitHub Pages and the public wger API. No paid AI runtime.
 
 ## 6. Pod Critique Sign-off
