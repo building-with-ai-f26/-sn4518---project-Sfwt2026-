@@ -1,5 +1,11 @@
 # Agent handoff log
 
+## 2026-11-23 — Claude Code: Build 3 security review and evidence
+
+- PR #7 (`b39aa05`) is live with masked replay; the user's phone session confirmed masking in PostHog. The live key search is clean (9 files, 0 matches). Screenshots: `docs/build3-posthog-replay-masked.png`, `docs/build3-key-search-clean.png`.
+- Security review found that saved workout data was rendered as raw HTML in `renderResult()`. Because the github.io origin is shared by every class site, that's a real injection path. Fixed with `esc()` plus a failing-then-passing test (118 pass). SECURITY.md rewritten; AGENTS.md rules 7 (replay mistake) and 8 (escaping) added; Build 3 log updated.
+- Still open: hours and agent spend in the log, the classmate walkthrough (written as scheduled for the Nov 24 pod session; the user hasn't confirmed), and the Icerynk submission before noon.
+
 ## 2026-11-23 — Claude Code: Session Replay back on (masked)
 
 - PR #6 merged to `main` as `ad310b4`. Build 3 assignment requires PostHog + Session Replay working on the live site, so replay is re-enabled in `docs/app/index.html` with `maskAllInputs` and `maskTextSelector: '*'`. Autocapture stays off. SECURITY.md, product-page log and Build 3 notes updated. 117 tests pass. Repo key search: only the `.env.example` placeholder.

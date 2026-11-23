@@ -423,7 +423,7 @@
     function renderResult(r) {
       closeInfo(false);
       if (r.error) {
-        $('week').innerHTML = `<p class="error">${r.error}</p>`;
+        $('week').innerHTML = `<p class="error">${esc(r.error)}</p>`;
         $('changes').innerHTML = '';
         return;
       }
@@ -446,43 +446,43 @@
           addableExercises(resultEquipment).filter((e) => !inDay.has(e.id)).forEach((e) => {
             const muscle = e.primaryMuscles[0];
             if (!groups.has(muscle)) groups.set(muscle, []);
-            groups.get(muscle).push(`<option value="${esc(e.id)}">${e.name}</option>`);
+            groups.get(muscle).push(`<option value="${esc(e.id)}">${esc(e.name)}</option>`);
           });
-          return `<div class="add-row"><select data-add-day="${dayIndex}" data-add-session="${sessionIndex}" aria-label="Add an exercise to ${w.day} ${s.label}">
+          return `<div class="add-row"><select data-add-day="${dayIndex}" data-add-session="${sessionIndex}" aria-label="Add an exercise to ${esc(w.day)} ${esc(s.label)}">
             <option value="">+ Add exercise…</option>
             ${[...groups].map(([muscle, opts]) => `<optgroup label="${muscle[0].toUpperCase() + muscle.slice(1)}">${opts.join('')}</optgroup>`).join('')}
           </select></div>`;
         };
-        w.activities.forEach((a) => parts.push(`<span class="chip sport">${a}</span>`));
+        w.activities.forEach((a) => parts.push(`<span class="chip sport">${esc(a)}</span>`));
         w.sessions.forEach((s, sessionIndex) => {
           parts.push(!log && editable
-            ? `<select class="chip session" data-type-day="${dayIndex}" aria-label="Change ${w.day} workout type" title="Change this date’s workout type. Replaces exercise edits and clears unsaved logging numbers.">${Object.entries(SESSION_TYPES).map(([type, info]) => `<option value="${type}"${type === s.type ? ' selected' : ''}>${info.name}</option>`).join('')}</select>`
-            : `<span class="chip session">${s.label}</span>`);
-          parts.push(`<div class="exercise-table-wrap"><table class="ex" aria-label="${w.day} ${s.label} exercises"><thead><tr><th scope="col">Exercise #</th><th scope="col">Exercise name</th><th scope="col">Switch to</th></tr></thead><tbody>` + s.exercises.map((e, exerciseIndex) => {
+            ? `<select class="chip session" data-type-day="${dayIndex}" aria-label="Change ${esc(w.day)} workout type" title="Change this date’s workout type. Replaces exercise edits and clears unsaved logging numbers.">${Object.entries(SESSION_TYPES).map(([type, info]) => `<option value="${type}"${type === s.type ? ' selected' : ''}>${info.name}</option>`).join('')}</select>`
+            : `<span class="chip session">${esc(s.label)}</span>`);
+          parts.push(`<div class="exercise-table-wrap"><table class="ex" aria-label="${esc(w.day)} ${esc(s.label)} exercises"><thead><tr><th scope="col">Exercise #</th><th scope="col">Exercise name</th><th scope="col">Switch to</th></tr></thead><tbody>` + s.exercises.map((e, exerciseIndex) => {
             const choices = exerciseAlternatives(e.id, resultEquipment);
             let result = ''; // a logged day's numbers, under the name
             let boxes = '';  // while logging: the three boxes, in their own full-width row
             if (logged) {
               const x = logged.exercises.find((done) => done.id === e.id);
-              result = `<span class="logged-result">${x ? `${x.sets} sets × ${x.reps} reps · ${x.weight} lb` : 'Skipped'}</span>`;
+              result = `<span class="logged-result">${x ? `${esc(x.sets)} sets × ${esc(x.reps)} reps · ${esc(x.weight)} lb` : 'Skipped'}</span>`;
             } else if (logging) {
               const last = historyStore.lastResult(workoutProfile, e.id);
               const typed = draft[e.id] || {};
-              const box = (field, label) => `<label class="log-box">${label}<input type="number" inputmode="decimal" min="0" data-log-field="${field}" data-log-exercise="${esc(e.id)}" value="${esc(typed[field] || '')}" placeholder="${last ? last[field] : '–'}" aria-label="${label} for ${e.name}"></label>`;
+              const box = (field, label) => `<label class="log-box">${label}<input type="number" inputmode="decimal" min="0" data-log-field="${field}" data-log-exercise="${esc(e.id)}" value="${esc(typed[field] || '')}" placeholder="${last ? esc(last[field]) : '–'}" aria-label="${label} for ${esc(e.name)}"></label>`;
               boxes = `<tr class="log-row"><td></td><td colspan="2"><div class="log-boxes">${box('sets', 'Sets')}${box('reps', 'Reps')}${box('weight', 'Weight (lb)')}</div></td></tr>`;
             }
             const control = logged ? '<small>Logged</small>' : !editable ? '<small>Read-only</small>' : choices.length
-              ? `<select data-swap-day="${dayIndex}" data-swap-session="${sessionIndex}" data-swap-exercise="${exerciseIndex}" aria-label="Swap ${e.name}">
+              ? `<select data-swap-day="${dayIndex}" data-swap-session="${sessionIndex}" data-swap-exercise="${exerciseIndex}" aria-label="Swap ${esc(e.name)}">
                   <option value="">Swap exercise…</option>
                   ${choices.map((a) => `<option value="${a.id}">${a.name}</option>`).join('')}
                 </select>`
               : '<small>No alternatives available</small>';
-            const info = `<button type="button" class="info-btn" data-info="${dayIndex}-${sessionIndex}-${exerciseIndex}" aria-label="About ${e.name}" aria-expanded="false" aria-controls="exercise-info">i</button>`;
+            const info = `<button type="button" class="info-btn" data-info="${dayIndex}-${sessionIndex}-${exerciseIndex}" aria-label="About ${esc(e.name)}" aria-expanded="false" aria-controls="exercise-info">i</button>`;
             // A workout keeps at least one exercise, so its last one has no Remove button.
             const remove = editable && s.exercises.length > 1
-              ? `<button type="button" class="remove-btn" data-remove="${dayIndex}-${sessionIndex}-${exerciseIndex}" aria-label="Remove ${e.name}">✕ Remove</button>` : '';
+              ? `<button type="button" class="remove-btn" data-remove="${dayIndex}-${sessionIndex}-${exerciseIndex}" aria-label="Remove ${esc(e.name)}">✕ Remove</button>` : '';
             const reason = e.swapReason || e.addReason;
-            return `<tr${boxes ? ' class="has-log"' : ''}><th scope="row">${++exerciseNumber}</th><td>${e.name}${info}${remove}<span class="sets">${e.sets} sets</span>${reason ? `<p class="meta">${reason}</p>` : ''}${result}</td><td>${control}</td></tr>${boxes}`;
+            return `<tr${boxes ? ' class="has-log"' : ''}><th scope="row">${++exerciseNumber}</th><td>${esc(e.name)}${info}${remove}<span class="sets">${esc(e.sets)} sets</span>${reason ? `<p class="meta">${esc(reason)}</p>` : ''}${result}</td><td>${control}</td></tr>${boxes}`;
           }).join('') + '</tbody></table></div>');
           if (editable) parts.push(addMenu(sessionIndex, s));
         });
@@ -492,13 +492,13 @@
         }
         if (log && logged) parts.push(`<p class="hint">This day is saved for ${dayDate(dayIndex)} and is final.</p>`);
         if (!w.sessions.length && !w.activities.length) parts.push(`<span class="rest">${log ? 'Rest day. Nothing to log.' : 'Rest'}</span>`);
-        return `<div class="day"><div class="day-name">${w.day}</div><div>${parts.join('')}</div></div>`;
+        return `<div class="day"><div class="day-name">${esc(w.day)}</div><div>${parts.join('')}</div></div>`;
       }).join('') + '</div>';
 
       const tags = { merge: 'Merge', drop: 'Drop', move: 'Move', volume: 'Volume', equipment: 'Equipment', warning: 'Heads-up', manual: 'Your edit' };
       const items = r.changes.map((c) =>
-        `<li class="${c.kind}"><span class="tag">${tags[c.kind]}</span>${c.text.replace(/^Heads-up: /, '')}</li>`);
-      const notes = r.notes.map((n) => `<li><span class="tag">Note</span>${n}</li>`);
+        `<li class="${esc(c.kind)}"><span class="tag">${esc(tags[c.kind] || '')}</span>${esc(c.text.replace(/^Heads-up: /, ''))}</li>`);
+      const notes = r.notes.map((n) => `<li><span class="tag">Note</span>${esc(n)}</li>`);
       $('changes').innerHTML = '<ul class="changes">' + items.concat(notes).join('') + '</ul>';
     }
 

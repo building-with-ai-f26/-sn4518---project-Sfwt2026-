@@ -358,3 +358,23 @@ test('a logged day refuses adds and removes; base workout edits keep hand edits 
   assert.equal(page.result(), done);
   assert.doesNotMatch(page.week(), /data-remove|data-add-day/);
 });
+
+test('saved workout text from storage is shown as text, never run as HTML', () => {
+  // Another page on the same github.io origin could write this device's FlexWeek storage.
+  const first = loadPlanner();
+  const key = 'flexweek:workouts:a:2026-11-09';
+  const record = JSON.parse(first.data.get(key));
+  const attack = '<img src=x onerror=alert(1)>';
+  record.result.week[4].sessions[0].exercises[0].name = attack;
+  record.result.week[4].sessions[0].exercises[0].swapReason = attack;
+  record.result.week[4].sessions[0].label = attack;
+  record.result.week[4].activities = [attack];
+  record.result.changes.push({ kind: 'manual', day: 4, text: attack });
+  record.result.notes.push(attack);
+  first.data.set(key, JSON.stringify(record));
+  const page = loadPlanner(first.data);
+  page.pickDay(0); // Friday not selected: its label is plain text, not the type menu
+  const shown = page.week() + page.el('changes').innerHTML;
+  assert.doesNotMatch(shown, /<img/);
+  assert.match(shown, /&lt;img src=x onerror=alert\(1\)&gt;/);
+});
