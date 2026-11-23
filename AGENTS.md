@@ -39,3 +39,5 @@
 4. **Verify changes:** Run relevant checks. For a reproducible logic bug, use a failing test to demonstrate the fix when practical. Record manual checks and known limitations; follow the selected Build 4 evaluation track.
 5. **Zero secrets in code:** Never hardcode API keys, tokens, or credentials. Always read from environment variables (`.env`) and update `.env.example` when new variables are needed.
 6. **Stop when looping:** If a fix fails twice in a row, stop, summarize what failed, and ask the human before trying a third approach.
+7. **Check the assignment before turning features off:** Before disabling analytics, session replay or anything else the course assignment requires, read the current build's requirements and ask the human. *Real mistake (Build 3):* an agent switched off PostHog Session Replay for privacy even though the assignment requires replay on the live site. The fix was to keep it on with all text and inputs masked.
+8. **Never put saved or fetched text into HTML unescaped:** Anything read from localStorage or an outside API goes through `esc()` before `innerHTML`, or is shown with `textContent`.
