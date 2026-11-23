@@ -184,11 +184,11 @@
       <p class="meta">Updated every week as we test with real users and learn what works.</p>
 
       <h3>1. Target User & The Job to Be Done</h3>
-      <p class="meta">PRD v2 · November 16, 2026</p>
+      <p class="meta">PRD v3 · November 22, 2026</p>
       <p><strong>The problem:</strong> My training plan assumes a perfect week. Real weeks have fewer gym days, soccer practice, or a gym without the right equipment, and I re-plan in my head every time.</p>
       <p><strong>Who is this for?</strong> Me and MBA friends who lift on a weekly plan and play other sports.</p>
       <p><strong>The painful "Before" workflow:</strong> Skip sessions or improvise substitutions on the spot; the week's balance falls apart.</p>
-      <p><strong>The "After" workflow with Build 2:</strong> Save a base week once → open the current week immediately → select the weekday to follow → swap exercises with a short explanation. Changes are saved on this device.</p>
+      <p><strong>The FlexWeek workflow:</strong> Open the app on a phone or computer, create a profile, and save a base week. Select a day in the current week and adjust the workout or swap an exercise with a short explanation. Log sets, reps, and weight, save the day, and reopen it from workout history.</p>
 
       <h3>2. Scope & Explicit Non-Goals</h3>
       <ul>
@@ -202,7 +202,8 @@
         <li><strong>Out of Scope #3:</strong> Injury or medical advice.</li>
       </ul>
       <p><strong>Current equipment scope:</strong> The workout UI assumes full-gym equipment. Other equipment and sport-adjustment rules exist in the engine but are not exposed in the current workflow.</p>
-      <p><strong>Also outside this build:</strong> Completion tracking, browsing previous weeks, cross-device sync, and AI-generated coaching. Stored routines do not establish whether someone completed a workout.</p>
+      <p><strong>Workout history:</strong> Saved logs are final and available from the profile’s workout history. Profiles, plans, and logs are stored in the browser that created them.</p>
+      <p><strong>Future scope:</strong> Individual accounts with private workout history that carries across devices. AI-generated coaching and browsing previous planned weeks are outside the current build.</p>
 
       <h3>3. Riskiest Assumption &amp; Validation</h3>
       <p><strong>Riskiest assumption:</strong> A saved routine with understandable substitutions provides enough practical value that users return when their training week is disrupted.</p>
@@ -281,11 +282,13 @@
       </div>
 
       <div class="log-entry">
-        <h3>Build 3 · Build.exe: The Core Workflow (Due Nov 23)</h3>
+        <h3>Build 3 · Go Live &amp; Security Audit (Due Nov 23)</h3>
         <ul>
-          <li><strong>What shipped:</strong> [End-to-end workflow working with real inputs + PostHog funnel events]</li>
-          <li><strong>What broke / changed in PRD:</strong> [Fill in]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
+          <li><strong>What shipped:</strong> Beginner lane. The static FlexWeek app moved to GitHub Pages and opens from this product page. The deployment changed file paths and app analytics settings, with the workout workflow carried forward from the local prototype.</li>
+          <li><strong>Verification:</strong> 117 automated tests passed. I completed a local walkthrough with a fake profile and successfully opened and used the live app on my phone. The classmate’s full phone walkthrough is pending.</li>
+          <li><strong>What changed in the PRD:</strong> Added workout logging and saved history to the current workflow. Individual accounts and cross-device history are future work. The current app stores profiles and workouts in the browser.</li>
+          <li><strong>Shipping and security:</strong> Codex prepared the move and branch. I handled the pull request in GitHub after the CLI returned a 401. The app’s PostHog configuration keeps pageviews and Session Replay on, with every input and all page text masked so profile and workout data stay out of recordings. Automatic click and form tracking is off. Live analytics verification and the live private-key check are pending. <a href="https://github.com/building-with-ai-f26/-sn4518---project-Sfwt2026-/blob/main/SECURITY.md">Security audit</a>.</li>
+          <li><strong>Cost &amp; time this week:</strong> Actual agent spend and hours are pending. The app uses GitHub Pages and makes no paid AI calls.</li>
         </ul>
       </div>
 

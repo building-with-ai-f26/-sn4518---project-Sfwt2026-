@@ -1,4 +1,4 @@
-# Build 3: Build.exe (The Core, in Small Changes)
+# Build 3: Go Live & Security Audit
 
 Optional working notes. Publish your required build log on `docs/index.html`; no separate journal submission is required.
 
@@ -7,32 +7,27 @@ Optional working notes. Publish your required build log on `docs/index.html`; no
 ---
 
 ## 1. What you made
-- **PRs / Commits shipped:** 
-- **Product Page URL / local demo evidence:** 
-- **Summary of what works now:** 
+- **Lane:** Beginner.
+- **Deployment commit:** `d9a62a1` on `build-3-pages`. GitHub pull request number and merge SHA still to be recorded.
+- **Links:** [Live app](https://building-with-ai-f26.github.io/-sn4518---project-Sfwt2026-/app/) · [Product page and PRD](https://building-with-ai-f26.github.io/-sn4518---project-Sfwt2026-/) · [Security audit](../SECURITY.md).
+- **Summary:** GitHub Pages now serves the existing workout app. The builder completed a local fake-profile walkthrough and used the deployed app successfully on his phone. All 117 tests passed.
 
 ## 2. Metacognition ("Learn with AI"): Branches, Diffs & Agent Guardrails
-- **Changes your AI tutor helped you understand: what changed, why it matters, and how you checked it:**
-  1. 
-  2. 
-  3. 
-- **New rule you added to `AGENTS.md` after catching your agent making a mistake this week:** 
+- **What I learned:** GitHub Pages serves the files under `docs/`. Moving the app to `docs/app/` makes it available at `/app/` after deployment. Future feature and design changes can be published at the same address.
+- **Shipping instructions:** `AGENTS.md` now covers tests, branch and PR, merge, and live phone verification.
 
 ## 3. What the agent did
-- **Agent(s) & Model(s) used:** 
-- **How you briefed/directed it (key prompts or `AGENTS.md` updates):** 
-- **Where you had to step in, edit by hand, or reset context:** 
+- **Agent:** Codex.
+- **Direction:** Follow the static GitHub Pages path from the class slides and keep the deployment focused. Preserve pageview analytics and disable automatic interaction tracking on the app. Codex first disabled Session Replay too; it was turned back on with full text and input masking because the assignment requires replay on the live site.
+- **Builder verification:** Ran the fake-profile workflow locally, handled the PR in GitHub, and used the live app on a phone.
 
 ## 4. What didn't work
-- **Bugs, agent loops, or broken assumptions:** 
-- **How you diagnosed and fixed (or rolled back) them:** 
+- **Shipping issue:** GitHub CLI returned HTTP 401 when creating the PR. The branch push succeeded and the builder opened the PR through GitHub.
+- **Pending evidence:** Live private-key check and screenshot, PostHog test with fake data, and the classmate’s full phone walkthrough.
 
 ## 5. What it cost
-- **Agent / Token spend this week:** `$___`
-- **Hosting / API runtime spend this week:** `$___`
-- **Your hours spent this week:** `___ hrs`
-- **Cumulative project spend to date:** `$___`
+- **Agent spend, hours, and cumulative spend:** Pending actuals.
+- **Hosting and runtime:** GitHub Pages and the public wger API. No paid AI runtime.
 
 ## 6. Pod Critique Sign-off
-- **Tested by podmate(s):** 
-- **Key feedback to address next:**
+- **Classmate phone walkthrough and feedback:** Pending.

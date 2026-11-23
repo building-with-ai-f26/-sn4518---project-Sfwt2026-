@@ -1,5 +1,30 @@
 # Agent handoff log
 
+## 2026-11-23 — Claude Code: Session Replay back on (masked)
+
+- PR #6 merged to `main` as `ad310b4`. Build 3 assignment requires PostHog + Session Replay working on the live site, so replay is re-enabled in `docs/app/index.html` with `maskAllInputs` and `maskTextSelector: '*'`. Autocapture stays off. SECURITY.md, product-page log and Build 3 notes updated. 117 tests pass. Repo key search: only the `.env.example` placeholder.
+- Not yet committed/pushed. Remaining before noon: deploy, fresh fake-user session on the live app (checks replay masking + events), live key search screenshot, agent security review, an AGENTS.md rule from a real agent mistake, hours/spend, classmate walkthrough, Icerynk submission.
+
+## 2026-11-23 — Codex: Icerynk MCP availability
+
+- Confirmed Icerynk is configured as a custom MCP server in the user-level Codex config. This session exposes no Icerynk tools, so authenticated data access is unverified. Plugin directory search returned no match. Configuration was not edited.
+
+## 2026-11-23 — Codex: Icerynk access check
+
+- No dedicated Icerynk connector was exposed. Found the existing Build 3 course window in Chrome, but it was minimized and the browser access host was unavailable. Current page contents and tools were not verified. The previous handoff records read-only access to Agentic Angie.
+- Next step if needed: bring the Icerynk window to the foreground and retry the read-only check.
+
+## 2026-11-22 — Codex: Icerynk agent access
+
+- Verified the signed-in course agent page through School Chrome. Agentic Angie is read-only, has three event triggers, and has no recurring schedule despite the day-before reminder instruction. No Icerynk settings changed.
+- No follow-up requested.
+
+## 2026-11-22 — Codex: Build 3 deployment and documentation
+
+- Beginner lane. Deployment commit `d9a62a1` was pushed on `build-3-pages`. GitHub CLI returned 401, so Sebastian opened the PR in GitHub. Sebastian confirmed using the deployed app successfully on his phone. His earlier fake-profile walkthrough was local. The automated suite passed all 117 tests.
+- Updated the living PRD, public Build 3 log, working notes, and security audit draft. App PostHog settings retain pageviews and disable replay and autocapture. Personal accounts and private cross-device workout history are future scope.
+- Pending before Icerynk submission: confirm PR/merge metadata, get a classmate through the whole workflow on their phone, check live PostHog with fake data, search the deployed files for private keys and capture a screenshot, and record actual time and spend. Submit the live URL, repo, beginner lane, audit link, and screenshot by Nov 23 at noon New York time.
+
 ## 2026-11-22 — Codex: Build 3 app move
 
 - Beginner lane. Moved the static app to `docs/app/`, updated the product link, test paths, catalog generator and local instructions, and documented the shipping workflow.
