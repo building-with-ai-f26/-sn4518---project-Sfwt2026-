@@ -1,5 +1,11 @@
 # Agent handoff log
 
+## 2026-11-22 — Codex: Build 3 deployment and documentation
+
+- Beginner lane. Deployment commit `d9a62a1` was pushed on `build-3-pages`. GitHub CLI returned 401, so Sebastian opened the PR in GitHub. Sebastian confirmed using the deployed app successfully on his phone. His earlier fake-profile walkthrough was local. The automated suite passed all 117 tests.
+- Updated the living PRD, public Build 3 log, working notes, and security audit draft. App PostHog settings retain pageviews and disable replay and autocapture. Personal accounts and private cross-device workout history are future scope.
+- Pending before Icerynk submission: confirm PR/merge metadata, get a classmate through the whole workflow on their phone, check live PostHog with fake data, search the deployed files for private keys and capture a screenshot, and record actual time and spend. Submit the live URL, repo, beginner lane, audit link, and screenshot by Nov 23 at noon New York time.
+
 ## 2026-11-22 — Codex: Build 3 app move
 
 - Beginner lane. Moved the static app to `docs/app/`, updated the product link, test paths, catalog generator and local instructions, and documented the shipping workflow.
