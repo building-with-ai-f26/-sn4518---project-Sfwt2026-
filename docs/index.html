@@ -300,6 +300,16 @@
       </div>
 
       <div class="log-entry">
+        <h3>November 24, 2026 · UI redesign with Impeccable</h3>
+        <ul>
+          <li><strong>What I did:</strong> Used Impeccable, an AI design skill for coding agents, to redesign the app's interface. Impeccable first had Codex write <code>PRODUCT.md</code>, a short brief about who uses FlexWeek, its purpose and design rules (for example, decoration must not compete with workout information). It then reviewed how users pick, log and reopen a workout on a phone. That review led to the "Gym Floor" redesign: a dark boxing-gym look with an orange accent, a gym photo banner, larger lift names and number fields for logging, and a Workout History button on the main screen.</li>
+          <li><strong>What changed next:</strong> The picker now shows dates. Previewing a workout, logging it and editing the day are separate screens. Codex added a "Next workout" banner listing exercises, but I found the rows looked tappable and repeated the day picker. Claude Code replaced it with a Mon–Sun strip over the same gym photo: days in the base routine are highlighted and days logged this week get a green check. Edit profile now shows only the profile form. Workout history is behind its own button.</li>
+          <li><strong>Verification:</strong> 117 automated tests pass. Agents checked the screens with headless Edge at desktop and 390 px phone widths using a test profile. The changes went live through PR #11 and PR #12. Still to do: a check on a real phone.</li>
+          <li><strong>What I learned:</strong> Using a design skill gave a clear visual direction quickly, but I still had to judge the result as a user. The banner looked good but wasn't clear, so I kept the look and changed what it showed.</li>
+        </ul>
+      </div>
+
+      <div class="log-entry">
         <h3>Build 4 · Test.py: Choose Track A or Track B (Due Nov 30)</h3>
         <ul>
           <li><strong>Chosen track:</strong> [A: 10-case domain eval and one outside target-user review; OR B: 3–5 outside users and replay findings]</li>

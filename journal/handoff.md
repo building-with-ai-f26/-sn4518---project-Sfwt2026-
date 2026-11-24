@@ -4,9 +4,11 @@
 
 - Correction to the entry below: PR #11 (`db79cc0`) already merged the redesign and day-picker work into `main`, so it is live. `gh` is logged in and working.
 - The user found the banner confusing: its exercise rows looked tappable but weren't, and it repeated the day picker. At the user's request, removed the banner (`gym-hero`, `gym-preview`, the `gym-start` handler, `nextWorkoutIndex`, and the now-unused `boxing-gym.jpg`). In its place is a 7-tile Mon–Sun strip (`renderWeekStrip` in `docs/app/index.html`; styles in `gym-floor.css`). Days with workouts in the base routine are orange and show the session name. Days logged this week get a green check. The strip shows no dates (the user asked for that), has a legend, can't be clicked, and appears only in the day preview.
-- The user liked the photo banner and only disliked its unclear workout list, so `boxing-gym.jpg` is restored. It is now the backdrop of the week strip, under a visible "This week" heading. Not committed yet.
-- Edit profile now shows only the form (one narrow column). Workout history appears only from the Workout History button. Renamed the layout class `creating` to `form-only`. Updated the PRD workout history line to match. Not committed yet.
-- Replaced the Start workout banner test in `tests/modes.test.js` with a week strip test. 117 tests pass. Checked in headless Edge at 1280 px and in a 390 px frame using a seeded test profile. Week strip committed locally as `5f81407`.
+- The user liked the photo banner and only disliked its unclear workout list, so `boxing-gym.jpg` is restored. It is now the backdrop of the week strip, under a visible "This week" heading.
+- Edit profile now shows only the form (one narrow column). Workout history appears only from the Workout History button. Renamed the layout class `creating` to `form-only`. Updated the PRD workout history line to match.
+- Replaced the Start workout banner test in `tests/modes.test.js` with a week strip test. 117 tests pass. Checked in headless Edge at 1280 px and in a 390 px frame using a seeded test profile.
+- **Live:** committed as `5f81407` (week strip) and `fd745cc` (photo restored, Edit profile shows only the form). PR #12 merged them into `main` (`1b1deee`). The Pages deploy succeeded, and the live `/app/` serves the week strip and `boxing-gym.jpg`.
+- Open: in the history list the date and type run together ("Mon, Nov 23, 2026Logged workout"). This is a one-line CSS fix that has been offered but not done. The strip follows the base routine, not this week's edits. Still to do: check on a physical phone. Next deadlines: Pod check-in Wed Nov 25 at noon and Build 4 Mon Nov 30 at noon (track not chosen).
 
 ## 2026-11-24 — Codex: Resume checkpoint
 
