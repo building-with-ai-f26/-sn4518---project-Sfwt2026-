@@ -150,7 +150,7 @@
     [hidden] { display: none !important; }
     .narrow { max-width: 520px; }
     .profile-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-    .profile-layout.creating { max-width: 520px; grid-template-columns: minmax(0, 1fr); }
+    .profile-layout.form-only { max-width: 520px; grid-template-columns: minmax(0, 1fr); }
     .history-list { max-height: 420px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
     .history-list ul { list-style: none; margin: 0; padding: 0; }
     .history-list li { padding: 12px 14px; border-bottom: 1px solid var(--border); }
@@ -203,7 +203,7 @@
     </section>
 
     <!-- SCREEN: profile (first screen for a new user; also used to edit) -->
-    <section id="screen-profile" class="profile-layout creating" hidden>
+    <section id="screen-profile" class="profile-layout form-only" hidden>
       <div class="card" id="profile-details">
       <h2 id="profile-title">About you</h2>
       <p class="hint" style="margin:0 0 16px">Saved on this device only. No account, nothing sent anywhere.</p>
@@ -297,7 +297,7 @@
     </div>
 
     <section class="week-strip" id="week-strip" aria-labelledby="week-strip-title" hidden>
-      <h2 id="week-strip-title" class="visually-hidden">This week at a glance</h2>
+      <h2 id="week-strip-title">This week</h2>
       <ol id="week-strip-days"></ol>
       <p class="week-strip-key"><span class="key-item"><span class="key planned"></span>Workout in your base routine</span><span class="key-item"><span class="key logged" aria-hidden="true">✓</span>Logged this week</span></p>
     </section>
@@ -1033,11 +1033,12 @@
         $('profile-title').textContent = rec ? 'Edit profile' : 'About you';
         $('profile-cancel').hidden = !rec && store.listProfiles().length === 0;
         fillForm(rec ? rec.profile : null);
-        $('screen-profile').classList.toggle('creating', !rec);
+        // Edit profile shows only the form; Workout History (its own button) shows only the list.
+        $('screen-profile').classList.toggle('form-only', !historyOnly);
         $('screen-profile').classList.toggle('history-only', historyOnly);
         $('profile-details').hidden = historyOnly;
         $('history-actions').hidden = !historyOnly;
-        $('profile-history').hidden = !rec;
+        $('profile-history').hidden = !rec || !historyOnly;
         const days = rec ? H.createHistoryStore(storage).listDays(id) : [];
         $('history-list').innerHTML = days.length ? '<ul>' + days.map((day) => {
           return `<li><button class="history-date" type="button" data-history-date="${esc(day.date)}" aria-haspopup="dialog"><time datetime="${esc(day.date)}">${esc(historyDate(day.date))}</time></button><span class="hint">${esc(historyType(day))}</span></li>`;
