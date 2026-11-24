@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FlexWeek · Prototype</title>
+  <title>FlexWeek</title>
   <!-- PostHog -->
   <script>
     !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}p||((p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",p.onerror=function(){p=null},(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r));var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="Eh Rh Ph Oh Lh qh init yd bd dd fd Sd wc md xd ad Ed Ad Rd Pd Od Fd capture getExtension gr pd gd calculateEventProperties Ld register register_once register_for_session unregister unregister_for_session zd hd jd getFeatureFlag getFeatureFlagPayload getFeatureFlagResult getAllFeatureFlags isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys onActiveMatchingSurveysChanged renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Hd identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset Ud shutdown setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty qd Td createPersonProfile setInternalOrTestUser Bd Uh zh opt_in_capturing opt_out_capturing Hh has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing $d debug kc Ls getPageViewId captureTraceFeedback captureTraceMetric rd".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
@@ -201,11 +201,11 @@
     .picker button { text-align: left; padding: 10px 12px; }
     .notice { padding: 10px 12px; border-radius: 8px; background: var(--warn-soft); color: var(--warn); font-size: 14px; margin-bottom: 16px; }
   </style>
+  <link rel="stylesheet" href="./gym-floor.css" />
 </head>
 <body>
   <div class="wrap">
     <h1>FlexWeek</h1>
-    <p class="sub">Your training plan assumes a perfect week. Tell FlexWeek this week's constraints and get an adjusted week that keeps the balance, with a reason for every change.</p>
 
     <p id="storage-notice" class="notice" hidden>This browser won't let FlexWeek save on this device, so your profile lasts only until you close the page.</p>
 
@@ -218,7 +218,7 @@
 
     <!-- SCREEN: profile (first screen for a new user; also used to edit) -->
     <section id="screen-profile" class="profile-layout creating" hidden>
-      <div class="card">
+      <div class="card" id="profile-details">
       <h2 id="profile-title">About you</h2>
       <p class="hint" style="margin:0 0 16px">Saved on this device only. No account, nothing sent anywhere.</p>
       <form id="profile-form" novalidate>
@@ -274,6 +274,7 @@
         <h2 id="history-title">Workout History</h2>
         <p class="hint" style="margin:0 0 12px">Saved workouts for this profile, newest first. Stored on this device only.</p>
         <div id="history-list" class="history-list" tabindex="0" role="region" aria-label="Saved workout dates and types"></div>
+        <div class="actions" id="history-actions" hidden><button id="history-back" type="button">Back to Your week</button></div>
       </aside>
     </section>
 
@@ -304,15 +305,25 @@
       <div class="who" id="who"></div>
       <div class="actions" style="margin:0">
         <button id="edit-profile" type="button">Edit profile</button>
+        <button id="view-history" type="button">Workout History</button>
         <button id="switch-profile" type="button">Switch person</button>
       </div>
     </div>
+
+    <section class="gym-hero" id="gym-hero" aria-labelledby="gym-session" hidden>
+      <div class="gym-hero-copy">
+        <p id="gym-date"></p>
+        <h2 id="gym-session">Next workout</h2>
+      </div>
+      <button type="button" class="primary" id="gym-start">Start workout</button>
+    </section>
+    <ol class="gym-preview" id="gym-preview" aria-label="Exercises in the next workout" hidden></ol>
 
     <div class="layout">
       <!-- INPUTS -->
       <div>
         <div class="card">
-          <h2>1 · Base workout</h2>
+          <h2>Base workout</h2>
           <div id="plan"></div>
           <button id="edit-week" type="button">Edit Base Workout</button>
         </div>
@@ -326,7 +337,7 @@
           <h2>Your week</h2>
           <div class="mode-switch" role="group" aria-label="What do you want to do with this week?">
             <button id="mode-modify" type="button" aria-pressed="true">Modify Current Week</button>
-            <button id="mode-log" type="button" aria-pressed="false">Log Today's Exercise</button>
+            <button id="mode-log" type="button" aria-pressed="false">Log workout</button>
           </div>
           <label for="workout-day">Current workout day</label>
           <select id="workout-day"></select>
@@ -420,14 +431,37 @@
 
     }
 
+    function nextWorkoutIndex(r) {
+      const today = WW.calendar().day;
+      return r.week.findIndex((day, index) =>
+        index >= today && day.sessions.length && !loggedDay(index));
+    }
+
+    function renderGymPreview(r) {
+      const index = r.error || mode === 'log' ? -1 : nextWorkoutIndex(r);
+      $('gym-hero').hidden = index < 0;
+      $('gym-preview').hidden = index < 0;
+      if (index < 0) return;
+      const sessions = r.week[index].sessions;
+      const date = new Date(dayDate(index) + 'T12:00:00');
+      $('gym-date').textContent = 'Next workout · ' + date.toLocaleDateString('en-US', {
+        weekday: 'short', month: 'short', day: 'numeric',
+      });
+      $('gym-session').textContent = sessions.map((session) => session.label).join(' + ');
+      $('gym-preview').innerHTML = sessions.flatMap((session) => session.exercises).map((exercise) =>
+        `<li><strong>${esc(exercise.name)}</strong><span>${esc(exercise.sets)} sets</span></li>`).join('');
+    }
+
     function renderResult(r) {
       closeInfo(false);
+      renderGymPreview(r);
+      const log = mode === 'log';
+      $('screen-main').className = log ? 'gym-logging' : '';
       if (r.error) {
         $('week').innerHTML = `<p class="error">${esc(r.error)}</p>`;
         $('changes').innerHTML = '';
         return;
       }
-      const log = mode === 'log';
       $('week').innerHTML = '<div class="week">' + r.week.map((w, dayIndex) => {
         if (log && dayIndex !== selectedDay) return ''; // logging shows only the selected day
         const parts = [];
@@ -437,7 +471,7 @@
         const draft = logging ? draftFor(dayDate(dayIndex)) : null;
         if (!log && dayIndex === selectedDay) parts.push('<p class="hint">Selected workout</p>');
         if (logged) parts.push('<span class="chip logged">Logged ✓</span>');
-        if (logging) parts.push('<p class="hint">Grey numbers are your last logged result for that exercise. Reps and Weight both 0 or blank skip the exercise.</p>');
+        if (logging) parts.push('<p class="hint">Leave reps and weight blank or zero to skip an exercise.</p>');
         let exerciseNumber = 0;
         // Adding: any exercise the equipment allows that isn't in this day yet, grouped by main muscle.
         const inDay = new Set(w.sessions.flatMap((s) => s.exercises.map((e) => e.id)));
@@ -458,7 +492,7 @@
           parts.push(!log && editable
             ? `<select class="chip session" data-type-day="${dayIndex}" aria-label="Change ${esc(w.day)} workout type" title="Change this date’s workout type. Replaces exercise edits and clears unsaved logging numbers.">${Object.entries(SESSION_TYPES).map(([type, info]) => `<option value="${type}"${type === s.type ? ' selected' : ''}>${info.name}</option>`).join('')}</select>`
             : `<span class="chip session">${esc(s.label)}</span>`);
-          parts.push(`<div class="exercise-table-wrap"><table class="ex" aria-label="${esc(w.day)} ${esc(s.label)} exercises"><thead><tr><th scope="col">Exercise #</th><th scope="col">Exercise name</th><th scope="col">Switch to</th></tr></thead><tbody>` + s.exercises.map((e, exerciseIndex) => {
+          const exerciseRows = s.exercises.map((e, exerciseIndex) => {
             const choices = exerciseAlternatives(e.id, resultEquipment);
             let result = ''; // a logged day's numbers, under the name
             let boxes = '';  // while logging: the three boxes, in their own full-width row
@@ -469,7 +503,8 @@
               const last = historyStore.lastResult(workoutProfile, e.id);
               const typed = draft[e.id] || {};
               const box = (field, label) => `<label class="log-box">${label}<input type="number" inputmode="decimal" min="0" data-log-field="${field}" data-log-exercise="${esc(e.id)}" value="${esc(typed[field] || '')}" placeholder="${last ? esc(last[field]) : '–'}" aria-label="${label} for ${esc(e.name)}"></label>`;
-              boxes = `<tr class="log-row"><td></td><td colspan="2"><div class="log-boxes">${box('sets', 'Sets')}${box('reps', 'Reps')}${box('weight', 'Weight (lb)')}</div></td></tr>`;
+              boxes = `<div class="log-boxes">${box('sets', 'Sets')}${box('reps', 'Reps')}${box('weight', 'Weight (lb)')}</div>`;
+              result = last ? `<p class="last-result">Last logged · ${esc(last.sets)} sets × ${esc(last.reps)} reps · ${esc(last.weight)} lb</p>` : '';
             }
             const control = logged ? '<small>Logged</small>' : !editable ? '<small>Read-only</small>' : choices.length
               ? `<select data-swap-day="${dayIndex}" data-swap-session="${sessionIndex}" data-swap-exercise="${exerciseIndex}" aria-label="Swap ${esc(e.name)}">
@@ -482,13 +517,23 @@
             const remove = editable && s.exercises.length > 1
               ? `<button type="button" class="remove-btn" data-remove="${dayIndex}-${sessionIndex}-${exerciseIndex}" aria-label="Remove ${esc(e.name)}">✕ Remove</button>` : '';
             const reason = e.swapReason || e.addReason;
-            return `<tr${boxes ? ' class="has-log"' : ''}><th scope="row">${++exerciseNumber}</th><td>${esc(e.name)}${info}${remove}<span class="sets">${esc(e.sets)} sets</span>${reason ? `<p class="meta">${esc(reason)}</p>` : ''}${result}</td><td>${control}</td></tr>${boxes}`;
-          }).join('') + '</tbody></table></div>');
+            if (log) {
+              const next = s.exercises[exerciseIndex + 1];
+              return `<li class="gym-lift"><div class="gym-lift-heading"><h3>${esc(e.name)}</h3>${info}</div>
+                ${result}${boxes}
+                ${next && logging ? `<p class="hint">Up next · ${esc(next.name)}</p>` : ''}
+                ${editable ? `<details class="gym-edit"><summary>Edit exercise</summary>${control}${remove}${reason ? `<p class="meta">${esc(reason)}</p>` : ''}</details>` : ''}</li>`;
+            }
+            return `<tr><th scope="row">${++exerciseNumber}</th><td>${esc(e.name)}${info}${remove}<span class="sets">${esc(e.sets)} sets</span>${reason ? `<p class="meta">${esc(reason)}</p>` : ''}${result}</td><td>${control}</td></tr>`;
+          }).join('');
+          parts.push(log
+            ? `<ol class="gym-lifts" aria-label="${esc(s.label)} exercises">${exerciseRows}</ol>`
+            : `<div class="exercise-table-wrap"><table class="ex" aria-label="${esc(w.day)} ${esc(s.label)} exercises"><thead><tr><th scope="col">Exercise #</th><th scope="col">Exercise name</th><th scope="col">Switch to</th></tr></thead><tbody>${exerciseRows}</tbody></table></div>`);
           if (editable) parts.push(addMenu(sessionIndex, s));
         });
         if (logging) {
           if (logError) parts.push(`<p class="error" role="alert">${esc(logError)}</p>`);
-          parts.push(`<div class="log-actions"><button type="button" class="primary" data-save-day="${dayIndex}">Save Logged Day</button><p class="hint">Saving is final: this day's numbers and exercises can't be changed afterwards.</p></div>`);
+          parts.push(`<div class="log-actions"><p class="hint">Saving is final: this day's numbers and exercises can't be changed afterwards.</p><button type="button" class="primary" data-save-day="${dayIndex}">Save Logged Day</button></div>`);
         }
         if (log && logged) parts.push(`<p class="hint">This day is saved for ${dayDate(dayIndex)} and is final.</p>`);
         if (!w.sessions.length && !w.activities.length) parts.push(`<span class="rest">${log ? 'Rest day. Nothing to log.' : 'Rest'}</span>`);
@@ -568,6 +613,16 @@
     }
     $('mode-modify').addEventListener('click', () => setMode('modify'));
     $('mode-log').addEventListener('click', () => setMode('log'));
+    $('gym-start').addEventListener('click', () => {
+      if (!workoutRecord || currentResult.error) return;
+      if (workoutRecord.week !== WW.calendar().week) openWorkout();
+      const index = nextWorkoutIndex(currentResult);
+      if (index < 0) return;
+      selectedDay = index;
+      $('workout-day').value = String(index);
+      setMode('log');
+      $('workout-day').focus?.();
+    });
 
     $('workout-day').addEventListener('change', (event) => {
       if (!workoutRecord) return;
@@ -966,13 +1021,16 @@
         }
       });
 
-      function openProfile(id) {
+      function openProfile(id, historyOnly = false) {
         editingId = id || null;
         const rec = id ? store.loadProfile(id) : null;
         $('profile-title').textContent = rec ? 'Edit profile' : 'About you';
         $('profile-cancel').hidden = !rec && store.listProfiles().length === 0;
         fillForm(rec ? rec.profile : null);
         $('screen-profile').classList.toggle('creating', !rec);
+        $('screen-profile').classList.toggle('history-only', historyOnly);
+        $('profile-details').hidden = historyOnly;
+        $('history-actions').hidden = !historyOnly;
         $('profile-history').hidden = !rec;
         const days = rec ? H.createHistoryStore(storage).listDays(id) : [];
         $('history-list').innerHTML = days.length ? '<ul>' + days.map((day) => {
@@ -1081,6 +1139,14 @@
         else openPicker();
       });
       $('edit-profile').addEventListener('click', () => openProfile(store.getCurrentId()));
+      $('view-history').addEventListener('click', () => {
+        openProfile(store.getCurrentId(), true);
+        $('history-list').focus();
+      });
+      $('history-back').addEventListener('click', () => {
+        show('main');
+        $('view-history').focus();
+      });
       $('switch-profile').addEventListener('click', openPicker);
       $('picker-new').addEventListener('click', () => openProfile(null));
       $('picker-list').addEventListener('click', (e) => {

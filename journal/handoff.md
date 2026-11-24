@@ -1,5 +1,27 @@
 # Agent handoff log
 
+## 2026-11-24 — Codex: Gym Floor redesign
+
+- Implemented the approved contemporary boxing-gym visual direction in the local app. The start screen highlights the next unlogged session in the current week and opens its workout log. Logging emphasizes lift names, previous results and number entry. Workout History is now reachable directly from the planner. Existing rules, storage formats, analytics and AGENTS.md are unchanged.
+- Verified 119 automated tests, including the new Start workout regression test. Inspected the desktop start screen and the logging screen at a 390 px viewport in headless Edge with a synthetic profile. The changes are local. Next: check on a physical phone before publishing.
+
+## 2026-11-24 — Codex: Mobile workout UX critique
+
+- Reviewed how users choose a workout, log it, and reopen history. Priorities: expose history from Your week, clarify workout dates and save behavior, and resolve the mismatch between weight-only entries accepted by logging and the positive-rep history filter. That filter was previously requested, so confirm the intended behavior before changing it. Browser rendering was unavailable. No app or AGENTS.md changes.
+
+## 2026-11-24 — Codex: Impeccable installation scope
+
+- The project-folder installer did not complete and left no installation files in the repo. Impeccable already exists under the user-level `.agents/skills` directory. No reinstall needed.
+
+## 2026-11-24 — Codex: FlexWeek project catch-up
+
+- Reviewed the living PRD, build log, security audit, and Build 4/5 notes. Build 3 was submitted. The Nov 24 classmate phone walkthrough has no recorded result, and the Build 4 evaluation track has no recorded selection. Build 4 is due Nov 30 at noon New York time.
+- Next: capture the walkthrough outcome when available and confirm the Build 4 track. The PRD proposes Modify remaining workouts. Accounts and cross-device history still need a scope and timing decision. No app changes or fresh test run in this session.
+
+## 2026-11-24 — Codex: Windows desktop update prompt
+
+- Found a Codex desktop package path at 26.1117.4957.0 and a separate npm CLI at 0.171.0. Windows denied access to package registration and deployment logs in this session. Cause of repeated prompt remains unverified. Next check: Microsoft Store update status and desktop version before and after updating.
+
 ## 2026-11-23 — Claude Code: Build 3 SUBMITTED (start here)
 
 ### Status

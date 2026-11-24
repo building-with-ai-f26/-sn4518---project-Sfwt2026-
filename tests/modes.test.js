@@ -63,6 +63,22 @@ const fridayExercises = (page) => JSON.parse(page.result()).week[4].sessions[0].
 const changeType = (page, day, type) => page.el('week').listeners.change({ target: { dataset: { typeDay: String(day) }, value: type } });
 const history = (page) => JSON.parse(page.data.get('flexweek:history:a') || 'null');
 
+test('Start workout opens the next unlogged workout even when another date is selected', () => {
+  const page = loadPlanner();
+  page.pickDay(0);
+  assert.equal(page.el('gym-hero').hidden, false);
+  assert.match(page.el('gym-date').textContent, /Fri, Nov 13/);
+  assert.match(page.el('gym-preview').innerHTML, /sets/);
+  page.click('gym-start');
+  assert.equal(page.el('workout-day').value, '4');
+  assert.equal(page.el('gym-hero').hidden, true);
+  assert.match(page.week(), /class="gym-lift"/);
+  page.type(fridayExercises(page)[0].id, 'reps', '8');
+  page.save(4);
+  page.click('mode-modify');
+  assert.equal(page.el('gym-hero').hidden, true);
+});
+
 test('whole-day type replacement uses defaults, clears edits and drafts, survives reload and expires with the week', () => {
   const page = loadPlanner();
   const original = JSON.parse(page.result());
