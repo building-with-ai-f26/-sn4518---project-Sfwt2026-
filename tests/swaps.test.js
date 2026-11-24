@@ -91,6 +91,7 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
   } });
   vm.runInContext(script, context);
   vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'upper', day: 2 }, { type: 'upper', day: 4 }], 'a', storage);", context);
+  elements.get('mode-modify').listeners.click();
   let before = JSON.parse(vm.runInContext('JSON.stringify(currentResult)', context));
   assert.ok(!elements.get('week').innerHTML.includes('data-swap-day="0"'));
   assert.ok(elements.get('week').innerHTML.includes('data-swap-day="4"'));
@@ -101,7 +102,8 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
   } });
   swap(0);
   assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), JSON.stringify(before));
-  elements.get('workout-day').listeners.change({ target: { value: '0' } });
+  elements.get('workout-day').listeners.click({ target: { closest: () => ({ dataset: { pickDay: '0' } }) } });
+  elements.get('mode-modify').listeners.click();
   assert.ok(elements.get('week').innerHTML.includes('data-swap-day="0"'));
   assert.ok(!elements.get('week').innerHTML.includes('data-swap-day="4"'));
   swap(0);
@@ -111,7 +113,8 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
   unchanged.week[0] = before.week[0];
   assert.deepEqual(unchanged.week, before.week);
   before = monday;
-  elements.get('workout-day').listeners.change({ target: { value: '2' } });
+  elements.get('workout-day').listeners.click({ target: { closest: () => ({ dataset: { pickDay: '2' } }) } });
+  elements.get('mode-modify').listeners.click();
   elements.get('week').listeners.change({ target: {
     dataset: { swapDay: '2', swapSession: '0', swapExercise: '0' },
     value: choice.id,
@@ -131,7 +134,8 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
   assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), JSON.stringify(moved), 'the moved schedule persists on reload');
   vm.runInContext("setBasePlan([{ type: 'upper', day: 0 }, { type: 'upper', day: 2 }, { type: 'upper', day: 4 }], 'a', storage);", context);
   // Restore Monday's manual swap after moving its session back.
-  elements.get('workout-day').listeners.change({ target: { value: '0' } });
+  elements.get('workout-day').listeners.click({ target: { closest: () => ({ dataset: { pickDay: '0' } }) } });
+  elements.get('mode-modify').listeners.click();
   swap(0);
   after.week[2].sessions[0].exercises[0] = before.week[2].sessions[0].exercises[0];
   assert.deepEqual(after.week, before.week, 'all other exercises and sessions are unchanged');
@@ -146,7 +150,8 @@ test('planner edits selected weekdays on Friday and retains independent swaps ac
   assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), saved, 'reopening an unchanged base week keeps the record');
   vm.runInContext('openWorkout()', context);
   assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), saved);
-  elements.get('workout-day').listeners.change({ target: { value: '2' } });
+  elements.get('workout-day').listeners.click({ target: { closest: () => ({ dataset: { pickDay: '2' } }) } });
+  elements.get('mode-modify').listeners.click();
   assert.ok(elements.get('week').innerHTML.includes('data-swap-day="2"'));
   swap(2);
   assert.equal(vm.runInContext('JSON.stringify(currentResult)', context), saved);

@@ -1,5 +1,65 @@
 # Agent handoff log
 
+## 2026-11-24 — Codex: Day preview, logging and editing
+
+- Implemented the approved dated day picker and separate Start workout and Edit this day actions. Logging no longer shows routine editing controls. Back and Done return to the selected date. Logged dates offer read-only results and rest days offer no workout actions.
+- Verified 117 automated tests, including preserving a logging draft through the edit flow and preventing swaps during logging. Reviewed the three views at 390 px before moving the actions above the exercise list. Physical-phone verification remains pending.
+
+## 2026-11-24 — Codex: Gym Floor redesign
+
+- Implemented the approved contemporary boxing-gym visual direction in the local app. The start screen highlights the next unlogged session in the current week and opens its workout log. Logging emphasizes lift names, previous results and number entry. Workout History is now reachable directly from the planner. Existing rules, storage formats, analytics and AGENTS.md are unchanged.
+- Verified 119 automated tests, including the new Start workout regression test. Inspected the desktop start screen and the logging screen at a 390 px viewport in headless Edge with a synthetic profile. The changes are local. Next: check on a physical phone before publishing.
+
+## 2026-11-24 — Codex: Mobile workout UX critique
+
+- Reviewed how users choose a workout, log it, and reopen history. Priorities: expose history from Your week, clarify workout dates and save behavior, and resolve the mismatch between weight-only entries accepted by logging and the positive-rep history filter. That filter was previously requested, so confirm the intended behavior before changing it. Browser rendering was unavailable. No app or AGENTS.md changes.
+
+## 2026-11-24 — Codex: Impeccable installation scope
+
+- The project-folder installer did not complete and left no installation files in the repo. Impeccable already exists under the user-level `.agents/skills` directory. No reinstall needed.
+
+## 2026-11-24 — Codex: FlexWeek project catch-up
+
+- Reviewed the living PRD, build log, security audit, and Build 4/5 notes. Build 3 was submitted. The Nov 24 classmate phone walkthrough has no recorded result, and the Build 4 evaluation track has no recorded selection. Build 4 is due Nov 30 at noon New York time.
+- Next: capture the walkthrough outcome when available and confirm the Build 4 track. The PRD proposes Modify remaining workouts. Accounts and cross-device history still need a scope and timing decision. No app changes or fresh test run in this session.
+
+## 2026-11-24 — Codex: Windows desktop update prompt
+
+- Found a Codex desktop package path at 26.1117.4957.0 and a separate npm CLI at 0.171.0. Windows denied access to package registration and deployment logs in this session. Cause of repeated prompt remains unverified. Next check: Microsoft Store update status and desktop version before and after updating.
+
+## 2026-11-23 — Claude Code: Build 3 SUBMITTED (start here)
+
+### Status
+- **Submitted on Icerynk:** Mon Nov 23 at 11:12 AM NY, before the noon deadline. Link: live app `/app/`. Note: repo, Beginner lane, SECURITY.md, product page. Uploads: `build3-key-search-clean.png` and `build3-posthog-replay-masked.png`. Grade not released yet.
+- **`main` is live** at https://building-with-ai-f26.github.io/-sn4518---project-Sfwt2026-/ (app at `/app/`). 118 tests pass.
+- **GitHub CLI works now.** `gh auth status` shows it's logged in as the user's account with `repo` scope, so the earlier 401 is gone. Agents can create and merge PRs themselves. The user asked agents to handle GitHub steps rather than handing them back.
+
+### PRs merged today (all from `build-3-pages`)
+| PR | Merge | What |
+|---|---|---|
+| #6 | `ad310b4` | Move app to `docs/app/`, publish via GitHub Pages (Codex, merged in GitHub UI) |
+| #7 | `b39aa05` | Session Replay back on with `maskAllInputs` + `maskTextSelector: '*'` |
+| #8 | `10a65c0` | Escape saved workout text in `renderResult()` + regression test; SECURITY.md rewrite; AGENTS.md rules 7–8; Build 3 log + screenshots; ~12 h / $0 |
+| #9 | `9e08368` | PRD v3 section 4: Hosting, Database, Security paragraphs; refreshed analytics + cost lines |
+| #10 | `cea120e` | "What broke" bullet in Build 3 log; analytics claim limited to the verified masked replay |
+
+### Decisions and findings
+- **Replay:** the assignment requires replay on the live site, so it's on but fully masked. The user verified it on their phone; the screenshot is in `docs/`. Pageview events in PostHog Activity were never checked, so don't claim them.
+- **Security:** the live key search is clean across 9 files. The repo only has the `.env.example` placeholder. The real finding: the shared `building-with-ai-f26.github.io` origin means other class sites can read and write FlexWeek's localStorage. Injection is fixed; the shared storage itself is an accepted risk, documented in SECURITY.md.
+- **AGENTS.md:** rule 7, check the assignment before turning off required features (the real replay mistake). Rule 8, always escape stored or fetched text before `innerHTML`.
+- **Hours and spend:** Build 3 ≈ 12 h (user said "3 more" than Build 2's 9). $0 extra; cumulative $0.
+
+### Next steps
+1. **Nov 24 class:** a classmate does the full phone walkthrough (profile → base week → modify → log a day → history). Record results and any fixes in the Build 3 log and SECURITY.md "What is left". This was the only unmet Build 3 item at submission.
+2. **User accounts plus a real database.** The user says browser-only storage "is simply not realistic". The user asked if this fits in 1 hour; the answer was no, realistically 4–6 h, so it was deferred until after Build 3. Recommended plan, to be proposed and approved before coding:
+   - Supabase Auth (magic link or Google) and Postgres tables with `user_id` and Row Level Security, still hosted on GitHub Pages with the publishable key.
+   - Keep code changes small by swapping the injected `storage` object for one backed by Supabase (load on sign-in, write-through).
+   - Then run the Account A vs. B security test and update SECURITY.md and the PRD.
+   - Creating the Supabase project and keys is on "Ask me first", so the user creates the account.
+   - Check with the user whether this goes in Build 4 or Build 5.
+3. **Whoop, later:** OAuth needs a client secret, so it needs a server-side token exchange (e.g. a Supabase Edge Function) and per-user token storage behind RLS. Accounts are a prerequisite.
+4. **Still pending from earlier:** user review of the 42 unmatched wger exercises; Add-menu search; UI polish; "Modify remaining workouts".
+
 ## 2026-11-23 — Claude Code: Build 3 security review and evidence
 
 - PR #7 (`b39aa05`) is live with masked replay; the user's phone session confirmed masking in PostHog. The live key search is clean (9 files, 0 matches). Screenshots: `docs/build3-posthog-replay-masked.png`, `docs/build3-key-search-clean.png`.

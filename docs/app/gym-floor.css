@@ -1,0 +1,142 @@
+:root {
+  color-scheme: dark;
+  --bg: #171716;
+  --card: #232322;
+  --text: #f7f4ee;
+  --muted: #c1bcb4;
+  --border: #484642;
+  --accent: #ff782f;
+  --accent-soft: #38271e;
+  --sport: #a3ddb6;
+  --sport-soft: #253a2c;
+  --warn: #ffd08a;
+  --warn-soft: #39291c;
+}
+
+body {
+  font-family: "Aptos", "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.wrap { max-width: 1180px; }
+h1 {
+  width: fit-content;
+  margin-bottom: 26px;
+  font-size: clamp(2rem, 4.3vw, 2.8rem);
+  font-weight: 850;
+  line-height: 1.06;
+  letter-spacing: -.035em;
+}
+h1::after {
+  content: "";
+  display: block;
+  width: 42px;
+  height: 4px;
+  margin-top: 7px;
+  background: var(--accent);
+}
+h2 {
+  color: var(--text);
+  font-size: 1.24rem;
+  text-transform: none;
+  letter-spacing: -.015em;
+}
+.primary { color: #20160f; }
+.primary:hover { background: #ff975d; }
+.error, .field-error { color: #ff9a8b; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+::selection { background: var(--accent); color: #20160f; }
+input { caret-color: var(--accent); }
+.layout { grid-template-columns: minmax(0, 1fr) minmax(0, 2.15fr); }
+
+.gym-hero {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: clamp(245px, 38vw, 440px);
+  padding: clamp(20px, 4vw, 44px);
+  border-radius: 16px;
+  background: linear-gradient(180deg, transparent 24%, rgb(20 20 19 / 86%) 100%), url("./boxing-gym.jpg") center 53% / cover #2c2b29;
+}
+.gym-hero[hidden], .gym-preview[hidden] { display: none; }
+.gym-hero-copy p { margin: 0 0 4px; font-size: clamp(1rem, 2vw, 1.35rem); font-weight: 650; }
+.gym-hero-copy h2 {
+  margin: 0;
+  font-size: clamp(2.5rem, 6.5vw, 5rem);
+  line-height: 1;
+  letter-spacing: -.035em;
+}
+.gym-hero .primary { min-height: 48px; flex-shrink: 0; }
+.gym-preview, .gym-lifts { list-style: none; margin: 12px 0 24px; padding: 0; }
+.gym-preview li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  padding: 12px 16px;
+  background: #2d2d2b;
+  border-radius: 8px;
+}
+.gym-preview span { flex-shrink: 0; color: var(--muted); }
+
+.gym-lift { padding: 19px 0; border-top: 1px solid var(--border); }
+.gym-lift-heading { display: flex; align-items: center; gap: 10px; }
+.gym-lift-heading h3 { margin: 0; font-size: clamp(1.24rem, 3vw, 1.65rem); letter-spacing: -.02em; }
+.gym-lift-heading .info-btn { width: 32px; height: 32px; flex: 0 0 32px; margin: 0; }
+.last-result { margin: 4px 0 10px; color: var(--muted); }
+.gym-lift .log-boxes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 12px 0 8px; }
+.gym-lift .log-box { gap: 4px; font-size: .875rem; font-weight: 600; }
+.gym-lift .log-box input[type="number"] {
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 8px;
+  font-size: 1.17rem;
+  font-weight: 650;
+  border-color: #75716b;
+}
+.gym-lift .log-box input::placeholder { opacity: 1; }
+.day-picker { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 12px 0 20px; }
+.day-picker button { min-height: 58px; padding: 6px 3px; font-weight: 700; }
+.day-picker small { display: block; color: var(--muted); font-weight: 500; }
+.day-picker button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+#day-title { font-size: clamp(1.5rem, 4vw, 2rem); }
+#day-back { margin-bottom: 14px; min-height: 44px; }
+#day-actions button, #day-done { min-height: 48px; }
+#day-actions[hidden] { display: none; }
+.day-exercises { margin-bottom: 0; }
+.day-focused .layout { display: block; max-width: 820px; margin-inline: auto; }
+.day-focused .layout > :first-child, .day-focused .profile-bar { display: none; }
+.day-focused #week .day { grid-template-columns: minmax(0, 1fr); }
+.day-focused #week .day-name { display: none; }
+.workout-type { display: grid; gap: 6px; font-weight: 650; }
+.workout-type select { width: 100%; max-width: 340px; min-height: 44px; }
+.day-edit-list { list-style: none; padding: 0; margin: 16px 0; }
+.day-edit-exercise { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px; margin-bottom: 6px; border-radius: 8px; background: #2d2d2b; }
+.day-edit-exercise .sets, .day-edit-exercise .meta { display: block; color: var(--muted); font-size: .875rem; }
+.day-edit-exercise .meta { margin: 4px 0 0; }
+.day-edit-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.day-edit-controls select { max-width: min(100%, 225px); min-height: 44px; }
+.day-edit-controls .remove-btn { min-height: 44px; }
+.day-focused #day-done { margin-top: 12px; }
+.gym-logging .log-actions .primary { min-height: 48px; }
+.gym-logging .log-actions .hint { margin-bottom: 8px; }
+.profile-layout.history-only { grid-template-columns: minmax(0, 640px); }
+#history-actions[hidden] { display: none; }
+
+@media (max-width: 820px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .layout > :first-child { order: 1; }
+  #gym-preview { display: none; }
+  .gym-hero { margin-bottom: 16px; }
+}
+@media (max-width: 480px) {
+  .wrap { padding-top: 20px; }
+  .gym-hero { align-items: start; justify-content: end; flex-direction: column; gap: 10px; min-height: 185px; }
+  .gym-hero-copy h2 { font-size: 2rem; }
+  .gym-hero .primary { width: 100%; }
+  .gym-logging .card { padding-inline: 14px; }
+  .day-picker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .day-edit-exercise { flex-direction: column; align-items: stretch; }
+  #day-actions { flex-direction: column; }
+}
