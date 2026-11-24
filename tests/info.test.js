@@ -84,11 +84,13 @@ function loadPlanner() {
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 const ownText = (entry) => entry.instructions.join('\n\n');
 
-test('every exercise on every day gets an info button pointing at it', () => {
+test('every exercise on the selected workout gets an info button pointing at it', () => {
   const { $, result } = loadPlanner();
+  $('workout-day').listeners.click({ target: { closest: () => ({ dataset: { pickDay: '2' } }) } });
+  $('mode-log').listeners.click();
   const html = $('week').innerHTML;
-  const expected = result().week.flatMap((d, di) => d.sessions.flatMap((s, si) =>
-    s.exercises.map((e, xi) => ({ key: `${di}-${si}-${xi}`, name: e.name }))));
+  const expected = result().week[2].sessions.flatMap((s, si) =>
+    s.exercises.map((e, xi) => ({ key: `2-${si}-${xi}`, name: e.name })));
   assert.ok(expected.length > 0);
   assert.equal((html.match(/class="info-btn"/g) || []).length, expected.length);
   for (const { key, name } of expected) {
@@ -274,6 +276,6 @@ test('the bubble closes on a second click, outside click, Esc, the close button 
   assert.equal(button.attributes['aria-expanded'], 'false');
   assert.equal(other.attributes['aria-expanded'], 'true');
 
-  $('workout-day').listeners.change({ target: { value: '2' } });
+  $('workout-day').listeners.click({ target: { closest: () => ({ dataset: { pickDay: '2' } }) } });
   assert.ok(!isOpen(), 're-render (changing the day) closes it');
 });

@@ -41,8 +41,8 @@ h2 {
   text-transform: none;
   letter-spacing: -.015em;
 }
-.primary, .mode-switch button[aria-pressed="true"] { color: #20160f; }
-.primary:hover, .mode-switch button[aria-pressed="true"]:hover { background: #ff975d; }
+.primary { color: #20160f; }
+.primary:hover { background: #ff975d; }
 .error, .field-error { color: #ff9a8b; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 ::selection { background: var(--accent); color: #20160f; }
@@ -80,9 +80,6 @@ input { caret-color: var(--accent); }
 }
 .gym-preview span { flex-shrink: 0; color: var(--muted); }
 
-.gym-logging .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 2.8fr); }
-.gym-logging #week .day { grid-template-columns: minmax(0, 1fr); }
-.gym-logging #week .day-name { font-weight: 700; }
 .gym-lift { padding: 19px 0; border-top: 1px solid var(--border); }
 .gym-lift-heading { display: flex; align-items: center; gap: 10px; }
 .gym-lift-heading h3 { margin: 0; font-size: clamp(1.24rem, 3vw, 1.65rem); letter-spacing: -.02em; }
@@ -99,22 +96,47 @@ input { caret-color: var(--accent); }
   border-color: #75716b;
 }
 .gym-lift .log-box input::placeholder { opacity: 1; }
-.gym-edit { margin-top: 10px; color: var(--muted); }
-.gym-edit summary { width: fit-content; cursor: pointer; padding-block: 6px; }
-.gym-edit select { max-width: 100%; }
-.gym-edit .remove-btn { min-height: 34px; }
+.day-picker { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 12px 0 20px; }
+.day-picker button { min-height: 58px; padding: 6px 3px; font-weight: 700; }
+.day-picker small { display: block; color: var(--muted); font-weight: 500; }
+.day-picker button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+#day-title { font-size: clamp(1.5rem, 4vw, 2rem); }
+#day-back { margin-bottom: 14px; min-height: 44px; }
+#day-actions button, #day-done { min-height: 48px; }
+#day-actions[hidden] { display: none; }
+.day-exercises { margin-bottom: 0; }
+.day-focused .layout { display: block; max-width: 820px; margin-inline: auto; }
+.day-focused .layout > :first-child, .day-focused .profile-bar { display: none; }
+.day-focused #week .day { grid-template-columns: minmax(0, 1fr); }
+.day-focused #week .day-name { display: none; }
+.workout-type { display: grid; gap: 6px; font-weight: 650; }
+.workout-type select { width: 100%; max-width: 340px; min-height: 44px; }
+.day-edit-list { list-style: none; padding: 0; margin: 16px 0; }
+.day-edit-exercise { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px; margin-bottom: 6px; border-radius: 8px; background: #2d2d2b; }
+.day-edit-exercise .sets, .day-edit-exercise .meta { display: block; color: var(--muted); font-size: .875rem; }
+.day-edit-exercise .meta { margin: 4px 0 0; }
+.day-edit-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.day-edit-controls select { max-width: min(100%, 225px); min-height: 44px; }
+.day-edit-controls .remove-btn { min-height: 44px; }
+.day-focused #day-done { margin-top: 12px; }
 .gym-logging .log-actions .primary { min-height: 48px; }
 .gym-logging .log-actions .hint { margin-bottom: 8px; }
 .profile-layout.history-only { grid-template-columns: minmax(0, 640px); }
 #history-actions[hidden] { display: none; }
 
 @media (max-width: 820px) {
-  .layout, .gym-logging .layout { grid-template-columns: minmax(0, 1fr); }
-  .gym-logging .layout > :first-child { order: 1; }
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .layout > :first-child { order: 1; }
+  #gym-preview { display: none; }
+  .gym-hero { margin-bottom: 16px; }
 }
 @media (max-width: 480px) {
   .wrap { padding-top: 20px; }
-  .gym-hero { align-items: start; justify-content: end; flex-direction: column; gap: 13px; }
+  .gym-hero { align-items: start; justify-content: end; flex-direction: column; gap: 10px; min-height: 185px; }
+  .gym-hero-copy h2 { font-size: 2rem; }
   .gym-hero .primary { width: 100%; }
   .gym-logging .card { padding-inline: 14px; }
+  .day-picker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .day-edit-exercise { flex-direction: column; align-items: stretch; }
+  #day-actions { flex-direction: column; }
 }

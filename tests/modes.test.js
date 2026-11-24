@@ -43,7 +43,7 @@ function loadPlanner(data = new Map()) {
     days: () => (el('week').innerHTML.match(/class="day"/g) || []).length,
     result: () => vm.runInContext('JSON.stringify(currentResult)', context),
     click: (id) => el(id).listeners.click(),
-    pickDay: (day) => el('workout-day').listeners.change({ target: { value: String(day) } }),
+    pickDay: (day) => el('workout-day').listeners.click({ target: { closest: () => ({ dataset: { pickDay: String(day) } }) } }),
     run: (code) => vm.runInContext(code, context),
     // Typing in one of an exercise's boxes, and pressing "Save Logged Day".
     type: (exerciseId, field, value) => el('week').listeners.input({ target: { dataset: { logField: field, logExercise: exerciseId }, value } }),
@@ -70,7 +70,7 @@ test('Start workout opens the next unlogged workout even when another date is se
   assert.match(page.el('gym-date').textContent, /Fri, Nov 13/);
   assert.match(page.el('gym-preview').innerHTML, /sets/);
   page.click('gym-start');
-  assert.equal(page.el('workout-day').value, '4');
+  assert.match(page.el('day-title').textContent, /Friday, Nov 13/);
   assert.equal(page.el('gym-hero').hidden, true);
   assert.match(page.week(), /class="gym-lift"/);
   page.type(fridayExercises(page)[0].id, 'reps', '8');
@@ -82,9 +82,11 @@ test('Start workout opens the next unlogged workout even when another date is se
 test('whole-day type replacement uses defaults, clears edits and drafts, survives reload and expires with the week', () => {
   const page = loadPlanner();
   const original = JSON.parse(page.result());
+  page.click('mode-modify');
   page.remove(4, 0);
   page.click('mode-log');
   page.type(fridayExercises(page)[0].id, 'reps', '12');
+  page.click('mode-modify');
   page.click('mode-modify');
   changeType(page, 4, 'legs');
   const result = JSON.parse(page.result());
@@ -105,6 +107,7 @@ test('whole-day type replacement uses defaults, clears edits and drafts, survive
 
 test('type changes refuse rest, logged, unselected, invalid and log-mode requests', () => {
   const page = loadPlanner();
+  page.click('mode-modify');
   assert.match(page.week(), /data-type-day="4"/);
   for (const [day, type] of [[1, 'legs'], [0, 'legs'], [4, 'invalid']]) {
     const before = page.result();
@@ -129,15 +132,19 @@ test('type changes refuse rest, logged, unselected, invalid and log-mode request
 test('saving base workout discards temporary types even when base is unchanged; logged days stay final', () => {
   const page = loadPlanner();
   const base = "[{ type: 'upper', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }]";
+  page.click('mode-modify');
   changeType(page, 4, 'legs');
   page.run(`setBasePlan(${base}, 'a', storage, true);`);
   assert.equal(JSON.parse(page.result()).week[4].sessions[0].type, 'full');
+  page.click('mode-modify');
   assert.doesNotMatch(page.el('changes').innerHTML, /Changed Fri/);
   page.pickDay(4);
+  page.click('mode-modify');
   changeType(page, 4, 'pull');
   page.run("setBasePlan([{ type: 'push', day: 0 }, { type: 'lower', day: 2 }, { type: 'full', day: 4 }], 'a', storage);");
   assert.equal(JSON.parse(page.result()).week[4].sessions[0].type, 'full', 'changed base detected on reopening');
   page.pickDay(4);
+  page.click('mode-modify');
   changeType(page, 4, 'legs');
   page.click('mode-log');
   page.type(fridayExercises(page)[0].id, 'reps', '8');
@@ -146,55 +153,38 @@ test('saving base workout discards temporary types even when base is unchanged; 
   assert.equal(JSON.parse(page.result()).week[4].sessions[0].type, 'legs');
 });
 
-test('the page opens in "Modify Current Week" with the whole week and swap menus', () => {
+test('the planner opens on a date preview with separate start and edit actions', () => {
   const page = loadPlanner();
-  assert.equal(page.days(), 7);
-  assert.match(page.week(), /Switch to/);
-  assert.match(page.week(), /data-swap-day="4"/);
-  assert.equal(page.el('changes-card').hidden, false);
+  assert.equal((page.el('workout-day').innerHTML.match(/data-pick-day/g) || []).length, 7);
+  assert.match(page.el('workout-day').innerHTML, /data-pick-day="4" aria-pressed="true"/);
+  assert.doesNotMatch(page.week(), /data-swap-day|data-log-field/);
+  assert.equal(page.el('day-actions').hidden, false);
+  page.pickDay(1);
+  assert.equal(page.el('day-actions').hidden, true);
+  assert.match(page.week(), /No workout scheduled/);
 });
 
-test('"Log Today\'s Exercise" shows only the selected day, with its swap menus', () => {
+test('log view excludes editing and returning to the same day keeps the draft', () => {
   const page = loadPlanner();
   page.click('mode-log');
-  assert.equal(page.el('mode-log').attributes['aria-pressed'], 'true');
-  assert.equal(page.el('mode-modify').attributes['aria-pressed'], 'false');
-  assert.equal(page.el('changes-card').hidden, true, 'the planning reasons are hidden while logging');
-  assert.match(page.el('mode-hint').textContent, /Only that day's workout/);
   assert.equal(page.days(), 1);
-  assert.match(page.week(), /Fri/);
-  assert.match(page.week(), /data-swap-day="4"/);
-  assert.doesNotMatch(page.week(), /Selected workout/);
-  assert.match(page.week(), /class="info-btn"/, 'exercise info stays available');
-  page.pickDay(1); // Tuesday is a rest day in this base workout
-  assert.equal(page.days(), 1);
-  assert.match(page.week(), /Rest day\. Nothing to log\./);
-});
-
-test('a swap while logging changes the selected day and is saved, like in Modify', () => {
-  const page = loadPlanner();
-  const exercise = JSON.parse(page.result()).week[4].sessions[0].exercises[0];
+  assert.equal(page.el('changes-card').hidden, true);
+  assert.doesNotMatch(page.week(), /data-swap-day|data-add-day|data-remove|data-type-day/);
+  assert.match(page.week(), /class="info-btn"/);
+  const [exercise] = fridayExercises(page);
   const choice = require('../docs/app/coach.js').exerciseAlternatives(exercise.id, 'full')[0];
-  page.click('mode-log');
-  page.el('week').listeners.change({ target: {
-    dataset: { swapDay: '4', swapSession: '0', swapExercise: '0' }, value: choice.id,
-  } });
-  assert.equal(JSON.parse(page.result()).week[4].sessions[0].exercises[0].id, choice.id);
-  const saved = JSON.parse(page.data.get('flexweek:workouts:a:2026-11-09'));
-  assert.equal(saved.result.week[4].sessions[0].exercises[0].id, choice.id);
-  assert.equal(page.days(), 1, 'still logging the same day after the swap');
-});
-
-test('the mode survives redraws and switching back restores the planning view', () => {
-  const page = loadPlanner();
-  const planning = page.week();
-  page.click('mode-log');
-  page.documentListeners.visibilitychange(); // coming back to the tab redraws the week
-  assert.equal(page.days(), 1);
+  page.swap(4, 0, choice.id);
+  assert.equal(fridayExercises(page)[0].id, exercise.id);
+  page.type(exercise.id, 'reps', '8');
+  page.documentListeners.visibilitychange();
+  page.click('day-back');
+  assert.match(page.el('day-title').textContent, /Friday/);
   page.click('mode-modify');
-  assert.equal(page.week(), planning);
-  assert.equal(page.el('changes-card').hidden, false);
-  assert.match(page.el('mode-hint').textContent, /this week only/);
+  assert.doesNotMatch(page.week(), /data-log-field/);
+  assert.match(page.week(), /data-swap-day="4"/);
+  page.click('day-done');
+  page.click('mode-log');
+  assert.match(page.week(), /value="8"/);
 });
 
 test('logging shows Sets, Reps and Weight boxes with "–" the first time, and a Save button', () => {
@@ -221,7 +211,9 @@ test('the grey placeholder is the last logged result of the exercise now in the 
   page = loadPlanner(data);
   page.click('mode-log');
   assert.match(page.week(), new RegExp(`data-log-exercise="${first.id}" value="" placeholder="–"`));
+  page.click('mode-modify');
   page.swap(4, 0, choice.id);
+  page.click('mode-log');
   assert.equal(fridayExercises(page)[0].id, choice.id);
   assert.match(page.week(), new RegExp(`data-log-field="sets" data-log-exercise="${choice.id}" value="" placeholder="4"`));
   assert.match(page.week(), new RegExp(`data-log-field="reps" data-log-exercise="${choice.id}" value="" placeholder="6"`));
@@ -270,7 +262,9 @@ test('a saved day is final: no boxes, no Save button and no swaps, in both modes
   assert.equal(page.result(), before, 'a swap aimed at the saved day is refused');
   page.save(4);
   assert.equal(history(page).days[FRIDAY].exercises.length, 1, 'saving again changes nothing');
-  page.click('mode-modify');
+  page.click('day-back');
+  assert.equal(page.el('mode-log').textContent, 'View saved workout');
+  page.click('mode-log');
   assert.match(page.week(), /Logged ✓/);
   assert.doesNotMatch(page.week(), /data-swap-day="4"/);
 });
@@ -303,9 +297,9 @@ test('editing the base workout never changes a logged day', () => {
   assert.equal(JSON.parse(page.result()).week[2].sessions[0].type, 'legs', 'days not logged still follow the base workout');
 });
 
-test('both modes show Remove buttons and an Add menu on the selected day only', () => {
+test('only editing shows Remove buttons and Add on the selected day', () => {
   const page = loadPlanner(); // Friday is selected
-  for (const mode of ['mode-modify', 'mode-log']) {
+  for (const mode of ['mode-modify']) {
     page.click(mode);
     assert.match(page.week(), /data-remove="4-0-0"/, mode);
     assert.match(page.week(), /data-add-day="4" data-add-session="0"/, mode);
@@ -314,24 +308,29 @@ test('both modes show Remove buttons and an Add menu on the selected day only', 
   page.pickDay(1); // rest day: adding there would create a new workout day (a later step)
   assert.doesNotMatch(page.week(), /data-add-day|data-remove/);
   page.pickDay(4);
+  page.click('mode-modify');
   const ids = fridayExercises(page).map((e) => e.id);
   const menu = page.week().slice(page.week().indexOf('data-add-day'));
   assert.ok(ids.every((id) => !menu.includes(`value="${id}"`)), 'exercises already in the day are not offered');
   assert.match(menu, /<optgroup label="Chest">/);
 });
 
-test('adding while logging puts the exercise at the end, with its own boxes, and lists the edit', () => {
+test('adding in Edit makes the exercise available when logging', () => {
   const page = loadPlanner();
   page.click('mode-log');
   const curl = require('../docs/app/exercises.js').EXERCISES.find((e) => e.name === 'Barbell Curl');
   const before = fridayExercises(page).length;
+  page.click('mode-modify');
   page.add(4, curl.id);
   const after = fridayExercises(page);
   assert.equal(after.length, before + 1);
   assert.deepEqual(after.at(-1), { id: curl.id, name: 'Barbell Curl', group: 'upper', sets: 3, addReason: 'Added by you.' });
+  page.click('mode-log');
   assert.match(page.week(), new RegExp(`data-log-field="reps" data-log-exercise="${curl.id}"`));
+  page.click('mode-modify');
   assert.match(page.week(), /Added by you\./);
   assert.ok(!page.week().slice(page.week().indexOf('data-add-day')).includes(`value="${curl.id}"`), 'no second copy offered');
+  page.click('mode-modify');
   page.add(4, curl.id);
   assert.equal(fridayExercises(page).length, before + 1, 'adding it twice is refused');
   const saved = JSON.parse(page.data.get('flexweek:workouts:a:2026-11-09')).result;
@@ -344,6 +343,7 @@ test('adding while logging puts the exercise at the end, with its own boxes, and
 test('removing keeps at least one exercise, and add/remove of the same exercise cancel out', () => {
   const page = loadPlanner();
   const [first, ...rest] = fridayExercises(page);
+  page.click('mode-modify');
   page.remove(4, 0);
   assert.deepEqual(fridayExercises(page).map((e) => e.id), rest.map((e) => e.id));
   assert.match(page.el('changes').innerHTML, new RegExp(`Removed ${first.name} from Fri Full Body\.`));
@@ -353,6 +353,7 @@ test('removing keeps at least one exercise, and add/remove of the same exercise 
   while (fridayExercises(page).length > 1) page.remove(4, 0);
   assert.doesNotMatch(page.week(), /data-remove="4-/, 'the last exercise has no Remove button');
   const last = page.result();
+  page.click('mode-modify');
   page.remove(4, 0);
   assert.equal(page.result(), last, 'and removing it anyway is refused');
 });
@@ -360,6 +361,7 @@ test('removing keeps at least one exercise, and add/remove of the same exercise 
 test('a logged day refuses adds and removes; base workout edits keep hand edits on unchanged days', () => {
   const page = loadPlanner();
   const curl = require('../docs/app/exercises.js').EXERCISES.find((e) => e.name === 'Barbell Curl');
+  page.click('mode-modify');
   page.add(4, curl.id);
   page.run("setBasePlan([{ type: 'upper', day: 0 }, { type: 'legs', day: 2 }, { type: 'full', day: 4 }], 'a', storage);");
   assert.equal(fridayExercises(page).at(-1).id, curl.id, 'Friday is still Full Body, so the added curl stays');
@@ -370,6 +372,7 @@ test('a logged day refuses adds and removes; base workout edits keep hand edits 
   page.save(4);
   const done = page.result();
   page.add(4, require('../docs/app/exercises.js').EXERCISES.find((e) => e.name === 'Hammer Curl').id);
+  page.click('mode-modify');
   page.remove(4, 0);
   assert.equal(page.result(), done);
   assert.doesNotMatch(page.week(), /data-remove|data-add-day/);
@@ -389,7 +392,7 @@ test('saved workout text from storage is shown as text, never run as HTML', () =
   record.result.notes.push(attack);
   first.data.set(key, JSON.stringify(record));
   const page = loadPlanner(first.data);
-  page.pickDay(0); // Friday not selected: its label is plain text, not the type menu
+  page.click('mode-modify');
   const shown = page.week() + page.el('changes').innerHTML;
   assert.doesNotMatch(shown, /<img/);
   assert.match(shown, /&lt;img src=x onerror=alert\(1\)&gt;/);

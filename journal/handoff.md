@@ -1,5 +1,10 @@
 # Agent handoff log
 
+## 2026-11-24 — Codex: Day preview, logging and editing
+
+- Implemented the approved dated day picker and separate Start workout and Edit this day actions. Logging no longer shows routine editing controls. Back and Done return to the selected date. Logged dates offer read-only results and rest days offer no workout actions.
+- Verified 117 automated tests, including preserving a logging draft through the edit flow and preventing swaps during logging. Reviewed the three views at 390 px before moving the actions above the exercise list. Physical-phone verification remains pending.
+
 ## 2026-11-24 — Codex: Gym Floor redesign
 
 - Implemented the approved contemporary boxing-gym visual direction in the local app. The start screen highlights the next unlogged session in the current week and opens its workout log. Logging emphasizes lift names, previous results and number entry. Workout History is now reachable directly from the planner. Existing rules, storage formats, analytics and AGENTS.md are unchanged.
