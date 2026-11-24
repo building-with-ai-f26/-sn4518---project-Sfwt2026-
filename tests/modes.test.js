@@ -63,20 +63,28 @@ const fridayExercises = (page) => JSON.parse(page.result()).week[4].sessions[0].
 const changeType = (page, day, type) => page.el('week').listeners.change({ target: { dataset: { typeDay: String(day) }, value: type } });
 const history = (page) => JSON.parse(page.data.get('flexweek:history:a') || 'null');
 
-test('Start workout opens the next unlogged workout even when another date is selected', () => {
+test('week strip shows the base routine days and checks off logged days, only on the day preview', () => {
   const page = loadPlanner();
-  page.pickDay(0);
-  assert.equal(page.el('gym-hero').hidden, false);
-  assert.match(page.el('gym-date').textContent, /Fri, Nov 13/);
-  assert.match(page.el('gym-preview').innerHTML, /sets/);
-  page.click('gym-start');
-  assert.match(page.el('day-title').textContent, /Friday, Nov 13/);
-  assert.equal(page.el('gym-hero').hidden, true);
-  assert.match(page.week(), /class="gym-lift"/);
+  const tiles = () => page.el('week-strip-days').innerHTML.split('<li').slice(1);
+  assert.equal(page.el('week-strip').hidden, false);
+  assert.equal(tiles().length, 7);
+  // Base plan: Upper Mon, Lower Wed, Full Body Fri; everything else is rest.
+  assert.deepEqual(tiles().map((t) => /class="strip-day planned/.test(t)), [true, false, true, false, true, false, false]);
+  assert.match(tiles()[2], /Lower/);
+  assert.match(tiles()[6], /Rest/);
+  assert.doesNotMatch(page.el('week-strip-days').innerHTML, /strip-check/);
+  assert.doesNotMatch(page.el('week-strip-days').innerHTML, /<button/);
+
+  page.pickDay(4);
+  page.click('mode-log');
+  assert.equal(page.el('week-strip').hidden, true);
   page.type(fridayExercises(page)[0].id, 'reps', '8');
   page.save(4);
-  page.click('mode-modify');
-  assert.equal(page.el('gym-hero').hidden, true);
+  page.click('day-back');
+  assert.equal(page.el('week-strip').hidden, false);
+  assert.match(tiles()[4], /logged/);
+  assert.match(tiles()[4], /strip-check/);
+  assert.equal(tiles().filter((t) => /strip-check/.test(t)).length, 1);
 });
 
 test('whole-day type replacement uses defaults, clears edits and drafts, survives reload and expires with the week', () => {

@@ -1,5 +1,16 @@
 # Agent handoff log
 
+## 2026-11-24 — Claude Code: Week strip replaces the Next workout banner
+
+- Correction to the entry below: PR #11 (`db79cc0`) already merged the redesign and day-picker work into `main`, so it is live. `gh` is logged in and working.
+- The user found the banner confusing: its exercise rows looked tappable but weren't, and it repeated the day picker. At the user's request, removed the banner (`gym-hero`, `gym-preview`, the `gym-start` handler, `nextWorkoutIndex`, and the now-unused `boxing-gym.jpg`). In its place is a 7-tile Mon–Sun strip (`renderWeekStrip` in `docs/app/index.html`; styles in `gym-floor.css`). Days with workouts in the base routine are orange and show the session name. Days logged this week get a green check. The strip shows no dates (the user asked for that), has a legend, can't be clicked, and appears only in the day preview.
+- Replaced the Start workout banner test in `tests/modes.test.js` with a week strip test. 117 tests pass. Checked in headless Edge at 1280 px and in a 390 px frame using a seeded test profile. Not committed yet.
+
+## 2026-11-24 — Codex: Resume checkpoint
+
+- Confirmed the workout preview, logging and editing changes are pushed to build-3-pages at 712eea7. All 117 tests pass. GitHub CLI returned 401 when checking PR status.
+- Next: verify the dated day picker and workout flow on a physical phone before publishing. No app changes this session.
+
 ## 2026-11-24 — Codex: Day preview, logging and editing
 
 - Implemented the approved dated day picker and separate Start workout and Edit this day actions. Logging no longer shows routine editing controls. Back and Done return to the selected date. Logged dates offer read-only results and rest days offer no workout actions.
